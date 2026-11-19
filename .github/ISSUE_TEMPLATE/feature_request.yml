@@ -1,0 +1,20 @@
+name: Feature request / 機能の要望
+description: Suggest an improvement / 改善の提案
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do / やりたいこと
+      description: The task you want to get done, rather than a specific solution. / 解決方法よりも、やりたい作業を教えてください
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Suggested behaviour / こうなってほしい
+  - type: markdown
+    attributes:
+      value: |
+        Note: features that need a server or send data anywhere are out of scope — by design, the app never sends your PDFs and the downloaded file makes no network requests.
+        サーバーや、どこかへデータを送る必要がある機能は対象外です（PDF を外に送らないこと、ダウンロード版は一切通信しないことが、このアプリの前提です）。

@@ -1,0 +1,3842 @@
+/* Washi PDF — 画面のスタイル。
+   トークン（色・角丸・影）を :root に置き、ライト／ダークを prefers-color-scheme（または画面で選んだ data-theme）で切り替える。
+   和紙を思わせる、少し温かみのある無彩色をベースに、藍色をアクセントにしている。 */
+:root {
+  --bg: #f3f1ec;
+  --panel: #ffffff;
+  --panel-2: #f7f5f0;
+  --panel-3: #ebe8e1;
+  --line: #e0dcd3;
+  --line-strong: #c9c4b8;
+  --text: #22252b;
+  --muted: #5f636c;
+  /* 選んだ道具の名前の色（暗い表示では明るくして、背景との差を保つ） */
+  --accent-strong: #2f55d4;
+  --accent: #2f55d4;
+  --accent-hover: #2446bd;
+  --accent-soft: #e6ecfb;
+  --accent-text: #ffffff;
+  --danger: #c93a4c;
+  --danger-soft: #fbe9ec;
+  --warn: #b45309;
+  --stage: #dedad2;
+  --swatch-ring: transparent;
+  --toast-error-bg: #fff1f2;
+  --toast-error-text: #9f1239;
+  --toast-error-line: #fecdd3;
+  --shadow: 0 1px 2px rgba(30, 28, 20, 0.06), 0 6px 20px rgba(30, 28, 20, 0.08);
+  --shadow-lg: 0 24px 60px rgba(20, 18, 12, 0.25);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --rail-w: 80px;
+  color-scheme: light;
+}
+/* 暗い画面：端末の設定に従う（data-theme が無いとき）か、画面で「暗い」を選んだとき。「明るい」を選べば端末が暗くても明るいまま */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171c;
+    --panel: #1e2127;
+    --panel-2: #252931;
+    --panel-3: #2e3340;
+    --line: #333845;
+    --line-strong: #454c5c;
+    --text: #e8e9ee;
+    --muted: #9aa1b0;
+    --accent: #7390ff;
+    --accent-strong: #a3b5ff;
+    --accent-hover: #8ea5ff;
+    --accent-soft: #2a3356;
+    --accent-text: #0e1327;
+    --danger: #ff6f82;
+    --danger-soft: #3b2328;
+    --warn: #f0a04b;
+    --stage: #0f1114;
+    --swatch-ring: rgba(255, 255, 255, 0.5);
+    --toast-error-bg: #3b2328;
+    --toast-error-text: #ffb3bd;
+    --toast-error-line: #6b3640;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171c;
+  --panel: #1e2127;
+  --panel-2: #252931;
+  --panel-3: #2e3340;
+  --line: #333845;
+  --line-strong: #454c5c;
+  --text: #e8e9ee;
+  --muted: #9aa1b0;
+  --accent: #7390ff;
+  --accent-strong: #a3b5ff;
+  --accent-hover: #8ea5ff;
+  --accent-soft: #2a3356;
+  --accent-text: #0e1327;
+  --danger: #ff6f82;
+  --danger-soft: #3b2328;
+  --warn: #f0a04b;
+  --stage: #0f1114;
+  --swatch-ring: rgba(255, 255, 255, 0.5);
+  --toast-error-bg: #3b2328;
+  --toast-error-text: #ffb3bd;
+  --toast-error-line: #6b3640;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 6px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+/* 入力欄：端末にフォントが無い文字（タイ語・ヒンディー語・アラビア語など）は同梱フォントで表示する。
+   Washi-fallback はその文字の範囲にだけ効くように登録されるので、ほかの文字の見た目は変わらない */
+input,
+textarea {
+  font-family: "Washi-fallback", system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.icon {
+  flex: none;
+}
+.boot {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  color: var(--muted);
+}
+
+/* ---------- 骨格 ---------- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+}
+.main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.spacer {
+  flex: 1;
+}
+.muted {
+  color: var(--muted);
+}
+.divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  margin: 4px 6px;
+}
+
+/* ---------- 上部バー ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  min-height: 54px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+.brand-mark {
+  display: block;
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+.wordmark {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.wordmark-pdf {
+  font-weight: 500;
+  color: var(--muted);
+}
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: -6px;
+}
+.hero-wordmark {
+  font-size: 30px;
+}
+.about-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 6px;
+}
+.about-wordmark {
+  font-size: 24px;
+}
+.doc-title {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.btn.ghost {
+  border-color: transparent;
+  background: transparent;
+}
+.btn.ghost:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+.btn.danger {
+  color: var(--danger);
+}
+.btn.danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+.btn.small {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+/* 保存ボタンと、その横のメニュー（名前を付けて保存・上書き・共有・印刷） */
+.split-btn {
+  display: inline-flex;
+}
+.split-btn > .btn {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.menu-caret {
+  padding: 0 6px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-inline-start: 1px solid color-mix(in srgb, var(--accent-text) 35%, transparent);
+}
+.caret-down {
+  display: inline-flex;
+  transform: rotate(90deg);
+}
+.menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+.menu-pop button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: start;
+  white-space: nowrap;
+}
+.menu-pop button:hover,
+.menu-pop button:focus-visible {
+  background: var(--panel-2);
+}
+/* 「このソフトについて」の中の、アプリの更新 */
+.update-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+.update-box h3 {
+  margin: 0 !important;
+}
+.update-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.update-box .note {
+  margin: 0;
+}
+.update-box .note.err {
+  color: var(--danger);
+}
+.ready-actions {
+  display: flex;
+  flex-flow: row-reverse wrap;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 0;
+  background: transparent;
+}
+.icon-btn:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+.lang-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.lang-switch:hover {
+  background: var(--panel-2);
+}
+.lang-switch:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* 本物の select は透明にして全面に重ねる（クリック・キーボード・読み上げはこちらが受ける） */
+.lang-switch select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+  border: 0;
+}
+
+/* ---------- 左のレール ---------- */
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 6px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+}
+.rail button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 2px 8px;
+  line-height: 1.25;
+  /* 日本語などは語の途中で折り返さない。長い語（ドイツ語など）だけ、はみ出す前に折る */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.rail button:hover:not(:disabled) {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.rail button.on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ---------- 空の状態 ---------- */
+.empty {
+  flex: 1;
+  /* 画面が低いとき（スマホなど）は、下のナビに重ならないようにこの中で送る */
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: 28px;
+  padding: 24px;
+}
+.dropzone {
+  width: min(640px, 100%);
+  padding: 56px 24px;
+  border: 2px dashed var(--line-strong);
+  border-radius: 20px;
+  background: var(--panel);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover,
+.dropzone.over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.dropzone h1 {
+  margin: 14px 0 6px;
+  font-size: 22px;
+}
+.dropzone p {
+  margin: 0;
+  color: var(--muted);
+}
+.dz-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.empty-alt {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: -14px 0 -6px;
+}
+.empty-alt .btn {
+  color: var(--muted);
+  font-weight: 600;
+}
+.empty-alt .btn:hover {
+  color: var(--text);
+}
+.empty-privacy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.empty > * {
+  flex: none;
+}
+
+/* ---------- ツール一覧 ---------- */
+.tools {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.tool-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(420px, 100%);
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  flex: none;
+}
+.tool-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.tool-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+}
+.tool-none {
+  margin: 0;
+}
+.tool-group-section h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tool-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+.tool-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  text-align: start;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+.tool-card:hover:not(:disabled) {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+.tool-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.tool-card-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--accent);
+}
+.tool-card.active .tool-card-icon {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.tool-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.tool-card-body b {
+  font-size: 14px;
+}
+.tool-card-body small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.tool-card-badge {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+/* ---------- ダイアログの部品 ---------- */
+.anchor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  gap: 4px;
+  width: max-content;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+}
+.anchor-grid button {
+  width: 28px;
+  height: 22px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--panel);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+.anchor-grid button i {
+  width: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+}
+.anchor-grid button.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.anchor-grid button.on i {
+  background: var(--accent);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  font-size: 12px;
+}
+.chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+fieldset.group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px 12px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+fieldset.group legend {
+  padding: 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.field-row.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.field input[type="color"] {
+  width: 100%;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+.field input[type="range"] {
+  width: 100%;
+}
+.field input[type="file"] {
+  font-size: 12px;
+}
+.wm-preview {
+  max-width: 160px;
+  max-height: 100px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: repeating-conic-gradient(#eee 0 25%, #fff 0 50%) 0 0 / 16px 16px;
+}
+
+/* ---------- organize ---------- */
+.organize {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.subbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+/* 選択中はボタンが多い。幅が足りないときは、回転・移動をアイコンだけにして 1 段に収める */
+.organize {
+  container-type: inline-size;
+}
+@container (max-width: 1500px) {
+  .subbar .compactable .label {
+    display: none;
+  }
+}
+.hint {
+  margin: 12px 20px 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.grid {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 20px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  gap: 18px;
+  align-content: start;
+}
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  user-select: none;
+  cursor: grab;
+}
+.card:hover {
+  background: var(--panel);
+}
+.card.sel {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.card.drop-before::before,
+.card.drop-after::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.card.drop-before::before {
+  left: -12px;
+}
+.card.drop-after::after {
+  right: -12px;
+}
+.card.dragging {
+  opacity: 0.45;
+  transform: scale(0.97);
+}
+.card-thumb {
+  position: relative;
+}
+.thumb {
+  display: grid;
+  place-items: center;
+}
+.thumb img,
+.thumb-ph,
+.thumb-blank {
+  background: #fff;
+  box-shadow: var(--shadow);
+  border-radius: 2px;
+}
+.thumb-ph {
+  background: linear-gradient(100deg, #f1f3f6 30%, #e5e8ee 50%, #f1f3f6 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.3s infinite linear;
+}
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+.thumb-blank {
+  display: grid;
+  place-items: center;
+  color: #aab;
+  font-size: 12px;
+}
+.badge {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.check {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #b8bfcc;
+  color: transparent;
+  opacity: 0;
+}
+.card:hover .check {
+  opacity: 1;
+}
+.check.on {
+  opacity: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.card-actions {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(20, 24, 34, 0.82);
+  opacity: 0;
+  /* 見えていないときはタップを受けない（カードの選択や長押しを邪魔しない） */
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.card:hover .card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* キーボードでカード（またはその中のボタン）に止まっている間も出す。マウスで押しただけでは残さない
+   （カードが Tab で止まれるようになったので、押したカードにずっと出たままにならないように） */
+.card:focus-visible .card-actions,
+.card:has(:focus-visible) .card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* キーボードでは、前後へ動かすボタンも出す（ドラッグの代わり） */
+.card:focus-visible .card-actions .touch-only,
+.card:has(:focus-visible) .card-actions .touch-only {
+  display: inline-grid;
+}
+.card-actions button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+}
+.card-actions button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.card-actions button.danger:hover {
+  background: #d6334a;
+}
+.card-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12.5px;
+  max-width: 100%;
+}
+.card-label .src {
+  color: var(--muted);
+  font-size: 11px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- editor ---------- */
+.editor {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) 260px;
+}
+.strip {
+  overflow: auto;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.strip-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 12px;
+}
+.strip-item:hover {
+  background: var(--panel-2);
+}
+.strip-item.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.strip-item span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.workspace {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  container-type: inline-size;
+}
+/* 広い画面：道具は 1 段に並べる。入りきらない分は横に送って隠さず、「その他」の一覧から選ぶ。
+   並びを折り返しにして 1 段分の高さで切り（高さは画面側で測って入れる）、2 段目に落ちた道具を「その他」に回す */
+.toolbar.fit .tool-group {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow: hidden;
+}
+.toolbar.fit .tool-wrap.off,
+.toolbar.fit .tool.off {
+  visibility: hidden;
+}
+.toolbar .tool.more {
+  flex: none;
+}
+/* 「その他」の一覧（広い画面では、ツールバーの右端から下へ開く） */
+.tool-sheet-back {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.tool-sheet {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 8px;
+  z-index: 41;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(76px, 1fr));
+  gap: 4px;
+  max-width: calc(100% - 16px);
+  max-height: 70vh;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+}
+.tool-sheet .tool {
+  min-width: 0;
+}
+.tool-sheet .tool span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ツールバーが狭いとき（ノート PC の 1280〜1440 幅など）：道具のボタンを詰めて、全部が 1 段に見えるようにする */
+@container (max-width: 1010px) {
+  .toolbar .tool {
+    min-width: 0;
+    padding: 5px 3px 4px;
+    font-size: 10.5px;
+  }
+  .toolbar .tool-group {
+    gap: 0;
+  }
+}
+.tool-group {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+/* 2 段目：選んだ道具の説明と、表示倍率・ページ送り */
+.toolbar-sub {
+  display: flex;
+  align-items: center;
+  /* 切り替え（行／段落／範囲、計測の種類）の名前が長い言語・狭い幅では、倍率やページ送りを次の段（右寄せ）に回す。
+     1 段に収めようとすると、右端のボタンが画面の外に出て押せなくなる */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2px 10px;
+  padding: 3px 10px;
+  min-height: 40px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+.toolbar-sub .tool-tip {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 52px;
+  padding: 5px 6px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11px;
+  color: var(--muted);
+}
+.tool:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.tool.on {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+.zoom,
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.zoom-val {
+  min-width: 56px;
+  border: 0;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+  padding: 6px;
+  border-radius: 6px;
+}
+.zoom-val:hover {
+  background: var(--panel-2);
+}
+.pager > span {
+  min-width: 56px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tool-tip {
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+}
+.stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--stage);
+  display: grid;
+  place-items: safe center;
+  padding: 24px;
+}
+.page-outer {
+  position: relative;
+  flex: none;
+}
+/* 連続表示：ページを縦に並べる。ページが表示より広いときは左端から（横に送れる）、1 ページだけなら上下の中央に置く */
+.stage.continuous {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.stage.continuous > .page-slot {
+  position: relative;
+  flex: none;
+  margin-inline: auto;
+}
+.stage.continuous > .page-slot:only-child {
+  margin-block: auto;
+}
+/* 見るだけのページ（押すと編集するページになる） */
+.page-view {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.12);
+  touch-action: pan-x pan-y;
+  cursor: pointer;
+  overflow: hidden;
+}
+/* 描く道具のときは、見るだけのページでも 1 本指でなぞれば描く（編集するページと同じにする） */
+.page-view.draws {
+  touch-action: none;
+}
+.page-view-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.page {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.12);
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+}
+/* タップで使う道具のときは 1 本指のなぞりをブラウザのスクロールに任せる（オブジェクトや取っ手の上は除く） */
+.page.tool-select,
+.page.tool-edit-text,
+.page.tool-image-edit,
+.page.tool-text,
+.page.tool-note,
+.page.tool-stamp {
+  touch-action: pan-x pan-y;
+}
+.page.unit-range,
+.page .obj,
+.page .handle {
+  touch-action: none;
+}
+.run-box.picked {
+  border: 1.5px solid var(--accent);
+  background: rgba(54, 86, 224, 0.22);
+}
+.run-box.dim {
+  opacity: 0.4;
+}
+/* 範囲で選んだ行の操作バー：表示領域の上の帯に出す（ページの中に置くと、小さいページでは端で切れる） */
+.range-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--accent-soft);
+  touch-action: manipulation;
+}
+.range-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 0 4px;
+}
+/* 描く道具の動かし方の知らせ：表示領域の上に重ねて出し、少し経つと消える。指で操作する端末でだけ出す */
+.stage-hints {
+  position: relative;
+  height: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.touch-hint {
+  display: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .touch-hint {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    transform: translateX(-50%);
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(20, 24, 34, 0.82);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+    animation: touch-hint 4.5s ease-in forwards;
+  }
+}
+@keyframes touch-hint {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.marquee {
+  position: absolute;
+  border: 1.5px solid var(--accent);
+  background: rgba(54, 86, 224, 0.12);
+  pointer-events: none;
+}
+.page-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.page-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #889;
+  font-size: 13px;
+}
+.obj {
+  position: absolute;
+}
+.tool-select .obj,
+.tool-edit-text .obj {
+  cursor: move;
+}
+.obj.selected {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 2px;
+}
+.obj-line.selected {
+  outline: none;
+}
+.obj-text {
+  white-space: pre;
+  min-width: 0.6em;
+}
+.obj-text.editing {
+  outline: 1.5px dashed var(--accent);
+  outline-offset: 2px;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+  background: rgba(54, 86, 224, 0.06);
+  min-width: 1em;
+}
+.obj-whiteout:not(.selected) {
+  outline: 1px dashed rgba(54, 86, 224, 0.0);
+}
+.tool-select .obj-whiteout:hover {
+  outline: 1px dashed rgba(54, 86, 224, 0.5);
+}
+.obj-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.handle {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  background: #fff;
+  border: 1.5px solid var(--accent);
+  border-radius: 2px;
+  z-index: 2;
+}
+.handle.nw {
+  left: -8px;
+  top: -8px;
+  cursor: nwse-resize;
+}
+.handle.ne {
+  right: -8px;
+  top: -8px;
+  cursor: nesw-resize;
+}
+.handle.sw {
+  left: -8px;
+  bottom: -8px;
+  cursor: nesw-resize;
+}
+.handle.se {
+  right: -8px;
+  bottom: -8px;
+  cursor: nwse-resize;
+}
+.handle.rot {
+  left: 50%;
+  top: -30px;
+  margin-left: -6px;
+  border-radius: 50%;
+  cursor: grab;
+}
+.rot-stem {
+  position: absolute;
+  left: 50%;
+  top: -19px;
+  height: 17px;
+  border-left: 1.5px solid var(--accent);
+  pointer-events: none;
+}
+.handle-dot {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  cursor: crosshair;
+}
+.line-sel {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+.run-box {
+  position: absolute;
+  border: 1px dashed rgba(54, 86, 224, 0.55);
+  background: rgba(54, 86, 224, 0.06);
+  border-radius: 2px;
+  cursor: text;
+}
+.run-box:hover {
+  border: 1.5px solid var(--accent);
+  background: rgba(54, 86, 224, 0.14);
+}
+.run-box.noedit {
+  border-color: rgba(234, 120, 20, 0.7);
+  background: rgba(234, 120, 20, 0.08);
+}
+.run-box.noedit:hover {
+  border-color: #ea7814;
+  background: rgba(234, 120, 20, 0.16);
+}
+/* 段落モード：同じブロックの行をまとめて強調 */
+.page:has(.run-box.in-block[data-block]:hover) .run-box.in-block {
+  background: rgba(54, 86, 224, 0.03);
+}
+.page-notice {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 6px 10px;
+  background: rgba(28, 34, 48, 0.85);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 6px;
+  pointer-events: none;
+}
+/* 保存結果そのものを描いた帯（字形の並びのままの行の書き換え）。下のページの上に重ねるだけで、操作は受けない */
+.obj-exact {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.obj-cover {
+  pointer-events: none;
+}
+.obj-textedit {
+  white-space: nowrap;
+}
+.obj-textedit .textedit-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  white-space: pre;
+}
+.obj-textedit.overflow {
+  outline: 1.5px dashed #d6334a;
+  outline-offset: 2px;
+}
+.textedit-badge {
+  position: absolute;
+  left: 0;
+  top: -18px;
+  font: 11px/1.4 system-ui, sans-serif;
+  color: var(--accent-text);
+  background: var(--accent);
+  padding: 0 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.obj-text.editing.textedit {
+  white-space: pre-wrap;
+}
+.original-text {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 80px;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+}
+.field textarea {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  resize: vertical;
+  width: 100%;
+}
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.note.warn {
+  color: #b45309;
+}
+.seg.small button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* ---------- properties ---------- */
+.props {
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  overflow: auto;
+}
+.props-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.props-tabs button {
+  flex: 1;
+  min-height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.props-tabs button.on {
+  background: var(--panel);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+.note.status {
+  margin-top: -4px;
+}
+.field.original summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+}
+.props-body {
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.props-body h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.props-body.help ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  line-height: 1.55;
+  font-size: 13px;
+}
+.note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.field > span {
+  color: var(--muted);
+  font-weight: 600;
+}
+.field input:not([type="color"]):not([type="range"]):not([type="checkbox"]),
+.field select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  width: 100%;
+}
+.field input:focus,
+.field select:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.color-row input[type="color"] {
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+}
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  /* 暗い画面では、黒い見本がパネルに溶け込まないよう、明るい輪を付ける（明るい画面では見えない） */
+  box-shadow: 0 0 0 1px var(--swatch-ring);
+  padding: 0;
+}
+.swatch.on {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.swatch.pick {
+  display: inline-grid;
+  place-items: center;
+  background: var(--panel);
+  color: var(--text);
+}
+.swatch.pick svg {
+  width: 14px;
+  height: 14px;
+}
+.pick-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+}
+.pick-hint svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.pick-hint .btn {
+  margin-left: auto;
+  color: #fff;
+}
+/* 拾っている間は、ページ上の指し示しを十字にする */
+.editor:has(.pick-hint) .page {
+  cursor: crosshair;
+}
+.swatch.none {
+  background: linear-gradient(135deg, #fff 45%, #d6334a 45%, #d6334a 55%, #fff 55%);
+}
+.prop-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- modal ---------- */
+.modal-back {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 12, 8, 0.45);
+  display: grid;
+  /* 中身（ボタン列や表）が広くても、ダイアログは画面幅を超えない */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 16px;
+  z-index: 50;
+}
+.modal {
+  width: min(540px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+.modal.wide {
+  width: min(760px, 100%);
+}
+.modal.about {
+  width: min(760px, 100%);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+}
+.modal-head h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+}
+.modal.about h3 {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+.modal.about p {
+  margin: 0;
+  font-size: 13px;
+}
+.about-list {
+  margin: -6px 0 0;
+  padding-left: 1.3em;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.about-list li + li {
+  margin-top: 4px;
+}
+.about-list ul {
+  margin: 2px 0 0;
+  padding-left: 1.2em;
+}
+.license-text {
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 40vh;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  margin: 0;
+}
+.license-text {
+  /* ダイアログの中身は縦に並べて伸び縮みさせている。縮められると 1 行分の高さにつぶれて読めなくなるので、縮めない */
+  flex: none;
+  min-height: 120px;
+}
+.license-text.short {
+  max-height: 160px;
+  min-height: 0;
+}
+@media (max-width: 640px), (max-height: 500px) {
+  /* スマホ：どちらも、画面の高さに応じた枠の中で送って読む（1 行分につぶれない高さを保つ） */
+  .license-text.short {
+    max-height: 38vh;
+    min-height: 120px;
+  }
+  .license-text {
+    max-height: 55vh;
+    font-size: 10.5px;
+  }
+}
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  width: max-content;
+  max-width: 100%;
+  /* 選択肢が多いとき（分割の 5 通りなど）は折り返す */
+  flex-wrap: wrap;
+}
+/* ツールバーの中（行／段落／範囲）は折り返さない：折り返すとツールバーの高さが増えて、下に空白ができる */
+.toolbar .seg,
+.toolbar-sub .seg {
+  flex-wrap: nowrap;
+  flex: none;
+  max-width: none;
+}
+.seg button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.seg button.on {
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--accent);
+}
+.seg.small button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.split-preview {
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--panel-2);
+}
+.split-preview ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.split-preview li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.split-preview p {
+  margin: 0;
+}
+.err {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* ---------- overlays ---------- */
+.busy {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #1c2230;
+  color: #fff;
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.toast {
+  white-space: pre-wrap;
+  position: fixed;
+  right: 16px;
+  top: 68px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  z-index: 70;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.toast-text {
+  flex: 1;
+  min-width: 0;
+}
+.toast-close {
+  flex: none;
+  margin: -6px -10px -6px 0;
+  color: inherit;
+}
+.toast.error {
+  background: var(--toast-error-bg);
+  color: var(--toast-error-text);
+  border: 1px solid var(--toast-error-line);
+}
+.toast.info {
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+/* ---------- responsive ---------- */
+/* 上部バー：タブレットの縦向き（768〜820px）や、名前の長い言語では、文字つきのボタンが入りきらず右端のボタンが画面の外に出る
+   （「このソフトについて」が押せない）。この幅では、スマホと同じく絵だけのボタンにする */
+.topbar .actions {
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .brand-name,
+  .topbar .label,
+  .doc-title {
+    display: none;
+  }
+  .topbar {
+    gap: 8px;
+  }
+}
+@media (max-width: 1000px) {
+  .editor {
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .props {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    max-height: 38vh;
+  }
+  .strip-item .thumb {
+    transform: scale(0.75);
+    margin: -12px;
+  }
+}
+@media (max-width: 640px), (max-height: 500px) {
+  /* 入力欄の文字は 16px 以上にする：それより小さいと、iPhone ではタップしたときに画面全体が拡大されてしまう */
+  input,
+  select,
+  textarea,
+  .field textarea {
+    font-size: 16px;
+  }
+  /* ---------- スマホ：1 列。レールは下のナビになる ---------- */
+  .topbar {
+    gap: 8px;
+    padding: 6px 10px;
+    padding-top: calc(6px + env(safe-area-inset-top));
+    min-height: 48px;
+  }
+  .brand-name,
+  .topbar .label,
+  .actions .divider,
+  .doc-title {
+    display: none;
+  }
+  .actions {
+    gap: 2px;
+  }
+  .actions .btn {
+    padding: 0 8px;
+  }
+  .actions .menu-caret {
+    padding: 0 3px;
+    min-width: 30px;
+    justify-content: center;
+  }
+  .split-btn {
+    margin: 0 2px;
+  }
+  .topbar .brand-mark {
+    width: 28px;
+    height: 28px;
+  }
+  /* メニューは画面の幅に収める */
+  .menu-pop {
+    position: fixed;
+    top: calc(52px + env(safe-area-inset-top));
+    inset-inline: 8px;
+    min-width: 0;
+  }
+  .menu-pop button {
+    min-height: 44px;
+  }
+  .lang-switch {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    background: transparent;
+  }
+  .lang-current {
+    display: none;
+  }
+  .topbar .icon-btn {
+    width: 30px;
+  }
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .rail {
+    grid-row: 2;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+  .rail button {
+    flex: 1;
+    padding: 6px 4px 4px;
+    font-size: 10.5px;
+  }
+  /* 最初の画面：低い画面でも 1 画面に収まりやすいように詰める */
+  .empty {
+    gap: 20px;
+    padding: 16px;
+  }
+  .dropzone {
+    padding: 36px 20px;
+  }
+  .empty-alt {
+    margin: -8px 0 -4px;
+  }
+  /* 横に送らず、入りきらない分は 2 段目に折り返す（隠れたボタンに気づけないのを防ぐ） */
+  .subbar {
+    padding: 6px 10px;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+  .subbar .spacer {
+    display: none;
+  }
+  .subbar .btn {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .subbar .muted {
+    white-space: nowrap;
+  }
+  .hint {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 10px 10px 40px;
+  }
+  .editor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .strip {
+    display: none;
+  }
+  /* 道具は画面の下（親指の届く所）に、横に送らず 1 段で並べる。よく使うものだけを出し、残りは「その他」の一覧から選ぶ */
+  .toolbar {
+    order: 9;
+    position: relative;
+    padding: 4px 4px 2px;
+    gap: 4px;
+    flex-wrap: wrap;
+    overflow: visible;
+    border-bottom: 0;
+    border-top: 1px solid var(--line);
+  }
+  .toolbar > .seg {
+    flex: 1 0 100%;
+    order: -1;
+    justify-content: center;
+  }
+  .toolbar > .tool-band {
+    flex: 1 0 100%;
+    order: -1;
+    display: flex;
+    justify-content: center;
+    padding: 2px 0;
+  }
+  .tool-group {
+    flex: 1;
+    min-width: 0;
+    gap: 0;
+  }
+  /* 幅は均等に割らず、名前の長さに応じて配る（均等に割ると、長い名前だけが「ハイラ…」のように切れる）。
+     余った幅は同じだけ足す。それでも入りきらない言語では、縮めて省略の印を出す */
+  .tool-wrap {
+    flex: 1 1 auto;
+    display: flex;
+  }
+  .tool-group > .tool {
+    flex: 1 1 auto;
+  }
+  /* 指で押せる幅は保つ（短い名前の道具が細くなりすぎないように）。その分は、長い名前の道具が 2 行に折り返して譲る */
+  .toolbar .tool-wrap,
+  .toolbar .tool-group .tool {
+    min-width: 34px;
+  }
+  .toolbar .tool-group .tool {
+    font-size: 10px;
+  }
+  .tool {
+    flex: 1 1 auto;
+    min-height: 46px;
+    padding: 5px 1px 3px;
+    justify-content: center;
+    font-size: 10px;
+  }
+  /* 名前は 2 行まで折り返す（「Text ändern」のような 2 語の名前は、語の切れ目で折り返して幅を譲る）。
+     それでも入りきらないときだけ、省略の印を出す */
+  .tool span {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: normal;
+    overflow-wrap: break-word;
+    /* 1 語の名前を途中で折り返すことになったら、できるだけ言葉の切れ目で（対応している言語・ブラウザーで） */
+    hyphens: auto;
+    text-align: center;
+    line-height: 1.15;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .tool-sheet-back {
+    background: rgba(0, 0, 0, 0.18);
+  }
+  .tool-sheet {
+    top: auto;
+    left: 6px;
+    right: 6px;
+    bottom: calc(100% + 6px);
+    max-width: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .tool-sheet .tool {
+    min-height: 54px;
+    font-size: 11px;
+  }
+  .tool-tip {
+    display: none;
+  }
+  .zoom,
+  .pager {
+    flex: none;
+  }
+  /* 2 段目：戻る・ページ送り・ズーム（横にスクロールしない） */
+  .toolbar-row2 {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px 6px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .toolbar-row2 .back {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .toolbar-row2 .zoom-val {
+    min-width: 44px;
+  }
+  .stage {
+    padding: 12px;
+  }
+  /* 影のぼかしは描画が重いので軽くする */
+  :root {
+    --shadow: 0 1px 3px rgba(30, 28, 20, 0.12);
+    --shadow-lg: 0 6px 20px rgba(20, 18, 12, 0.22);
+  }
+  .card {
+    transition: none;
+  }
+  .textedit-badge {
+    display: none;
+  }
+
+  .props {
+    max-height: 42vh;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    box-shadow: 0 -4px 16px rgba(20, 28, 45, 0.1);
+  }
+  .props.idle {
+    display: none;
+  }
+  /* 文字を入力しているあいだ：ページを広く見せる。上下のバー・道具の並び・パネルの見出しやタブを隠し、入力欄だけにする */
+  html.typing .app {
+    height: var(--vvh, 100dvh);
+    transform: translateY(var(--vvtop, 0px));
+  }
+  html.typing .topbar,
+  html.typing .rail,
+  .editor.typing .toolbar,
+  .editor.typing .toolbar-row2,
+  .editor.typing .props-grip,
+  .editor.typing .props-body > h3,
+  .editor.typing .props-tabs,
+  .editor.typing .props-body .field > span,
+  .editor.typing .props-body details,
+  .editor.typing .props-body .note:not(.status),
+  .editor.typing .props-body .btn,
+  /* 入力している欄（と、それを含む枠）と、状態の表示のほかは隠す（印鑑の候補・枠の形・色などの設定。「書式・配置」で戻る） */
+  .editor.typing .props-body :not(:focus):not(:has(:focus)):not(.note.status):not(.note.status *) {
+    display: none !important;
+  }
+  .editor.typing .props {
+    max-height: none;
+  }
+  .editor.typing .props-body {
+    padding: 4px 10px 8px;
+  }
+  .editor.typing .props-body textarea,
+  .editor.typing .props-body input[type="text"] {
+    max-height: 5.2em;
+  }
+  .editor.typing .props-body .note.status {
+    margin: 4px 0 0;
+    font-size: 11.5px;
+  }
+  .typing-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px 0;
+  }
+  .props-body {
+    padding: 10px 12px 16px;
+  }
+  /* パネルをたたむ「つまみ」。たたむと、つまみだけが残る */
+  .props-grip {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 26px;
+    border: 0;
+    background: var(--panel, #fff);
+    color: var(--muted);
+    cursor: pointer;
+    /* なぞって開閉できるように、ブラウザのスクロールに取られないようにする */
+    touch-action: none;
+  }
+  .props-grip .grip-bar {
+    width: 44px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+  }
+  .props-grip .grip-chevron {
+    display: inline-flex;
+    transform: rotate(90deg);
+  }
+  .props-grip .grip-chevron.up {
+    transform: rotate(-90deg);
+  }
+  .props-grip .grip-chevron svg {
+    width: 14px;
+    height: 14px;
+  }
+  .props.collapsed {
+    max-height: 26px;
+    overflow: hidden;
+  }
+  .props.collapsed > :not(.props-grip) {
+    display: none;
+  }
+  .tools {
+    padding: 14px 12px 40px;
+  }
+  /* スマホ：1 段に 1 ツール。アイコンを左に、名前と説明を右に、省略せずに全部出す（2 列では名前や説明が切れる） */
+  .tool-cards {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .tool-card {
+    align-items: center;
+    gap: 11px;
+    padding: 9px 12px;
+  }
+  .tool-card-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  .tool-card-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .tool-card-body b {
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+  .tool-card-body small {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  /* 「有効」の印と名前が重ならないように */
+  .tool-card.active .tool-card-body {
+    padding-right: 44px;
+  }
+  .tool-card-badge {
+    right: 8px;
+    top: 8px;
+  }
+  .modal {
+    border-radius: 14px;
+  }
+  /* 指で押せる大きさに（格子の列も同じ幅に広げる。列が狭いままだと枠からはみ出す） */
+  .anchor-grid {
+    grid-template-columns: repeat(3, 40px);
+  }
+  .anchor-grid button {
+    width: 40px;
+    min-width: 40px;
+    min-height: 34px;
+  }
+  .chip {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .modal-body {
+    padding: 4px 14px 14px;
+  }
+  .field-row,
+  .field-row.three {
+    grid-template-columns: 1fr;
+  }
+  /* 下のボタン列：件数などの表示は 1 行使い、ボタンは次の行に右寄せでそろえる */
+  .modal-foot > .muted:first-child {
+    flex: 1 1 100%;
+  }
+  /* 通知は画面の下（下のバーの上）に出す。上に出すと、上の操作ボタンに重なる */
+  .toast {
+    right: 8px;
+    left: 8px;
+    max-width: none;
+    top: auto;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* 幅 360px 前後のスマホ：上部バーが画面からはみ出さないよう、さらに詰める */
+@media (max-width: 380px) {
+  .topbar {
+    gap: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .actions .btn {
+    padding: 0 6px;
+  }
+  /* 編集画面の 2 段目（戻る・ページ送り・倍率）も 1 行に収める */
+  .toolbar-row2 {
+    gap: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .toolbar-row2 .back {
+    padding: 0 4px;
+  }
+  .toolbar-row2 .pager > span {
+    min-width: 44px;
+  }
+  .toolbar-row2 .zoom-val {
+    min-width: 40px;
+    padding: 6px 2px;
+  }
+}
+
+/* 幅 320px 前後：上部バーに全部のボタンが入るよう、押せないロゴを隠す。編集画面の 2 段目は「戻る」を矢印だけにする */
+@media (max-width: 340px) {
+  .topbar .brand {
+    display: none;
+  }
+  .toolbar-row2 .back-label {
+    display: none;
+  }
+  .toolbar-row2 .pager > span {
+    min-width: 38px;
+  }
+}
+
+/* ---------- 横向きのスマホ（高さが低い画面）----------
+   高さが 500px 以下なら、幅が広くてもスマホの並びにする（上の「スマホ」の指定がそのまま効く）。そのうえで、
+   ページを広く見せるために、縦に積んでいたものを横へ回す：レールは左、道具とページ送り・倍率は上の 1 段、設定のパネルは右。
+   （幅 500px 以上に限る：縦向きのスマホでキーボードが出て高さが低くなったときは、この並びにしない） */
+@media (min-width: 500px) and (max-height: 500px) {
+  .topbar {
+    min-height: 42px;
+    padding-top: calc(3px + env(safe-area-inset-top));
+    padding-bottom: 3px;
+    padding-left: calc(10px + env(safe-area-inset-left));
+    padding-right: calc(10px + env(safe-area-inset-right));
+  }
+  .body {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .rail {
+    grid-row: auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px;
+    width: calc(72px + env(safe-area-inset-left));
+    padding: 4px 4px 4px calc(4px + env(safe-area-inset-left));
+    border-top: 0;
+    border-inline-end: 1px solid var(--line);
+    overflow-y: auto;
+  }
+  .rail button {
+    flex: none;
+    padding: 6px 2px 4px;
+    font-size: 10px;
+  }
+  .menu-pop {
+    top: calc(44px + env(safe-area-inset-top));
+    max-height: calc(100dvh - 52px);
+    overflow-y: auto;
+  }
+  /* ページ整理：横に広いので、入るだけ並べる */
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .editor {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+  /* 作業領域の中身（道具・ページ送り・表示領域）を、編集画面の格子に直接並べる */
+  .workspace {
+    display: contents;
+  }
+  .toolbar-row2 {
+    grid-area: 1 / 1 / 2 / 2;
+    padding: 2px 4px;
+    gap: 0;
+  }
+  /* 「ページ整理」へは左のレールから戻れる */
+  .toolbar-row2 .back,
+  .toolbar-row2 .spacer {
+    display: none;
+  }
+  .toolbar-row2 .pager > span {
+    min-width: 40px;
+  }
+  .toolbar-row2 .zoom-val {
+    min-width: 40px;
+    padding: 6px 2px;
+  }
+  .toolbar {
+    grid-area: 1 / 2 / 2 / 4;
+    order: 0;
+    padding: 2px 4px;
+    border-top: 0;
+    border-bottom: 1px solid var(--line);
+    align-items: stretch;
+  }
+  .tool-group {
+    flex: 1 1 280px;
+  }
+  .tool {
+    min-height: 40px;
+    padding: 3px 1px 2px;
+  }
+  /* 行／段落／範囲などの切り替え：道具の右に並べる（入らなければ次の段へ） */
+  .toolbar > .seg,
+  .toolbar > .tool-band {
+    flex: 0 0 auto;
+    order: 1;
+    align-self: center;
+    padding: 2px;
+  }
+  /* 「その他」の一覧は、下へ開く */
+  .tool-sheet {
+    top: calc(100% + 4px);
+    bottom: auto;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    max-height: calc(100dvh - 104px - env(safe-area-inset-top));
+  }
+  .tool-sheet .tool {
+    min-height: 46px;
+  }
+  .range-slot {
+    grid-area: 2 / 1 / 3 / 4;
+  }
+  .pick-hint {
+    grid-area: 3 / 1 / 4 / 4;
+  }
+  .stage-hints,
+  .stage {
+    grid-area: 4 / 1 / 5 / 3;
+  }
+  .stage {
+    padding: 8px;
+  }
+  /* 設定のパネルは右に付ける（下に付けると、ページの見える高さがほとんど残らない）。つまみで細くたためる */
+  .props {
+    grid-area: 4 / 3 / 5 / 4;
+    width: clamp(220px, 36vw, 300px);
+    max-height: none;
+    border-top: 0;
+    border-inline-start: 1px solid var(--line);
+    box-shadow: -4px 0 16px rgba(20, 28, 45, 0.1);
+    padding-right: env(safe-area-inset-right);
+  }
+  .props-grip {
+    justify-content: flex-start;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .props-grip .grip-bar {
+    display: none;
+  }
+  .props-grip .grip-chevron {
+    transform: none;
+  }
+  .props-grip .grip-chevron.up {
+    transform: rotate(180deg);
+  }
+  .props.collapsed {
+    width: calc(32px + env(safe-area-inset-right));
+    max-height: none;
+  }
+  .props.collapsed .props-grip {
+    height: 100%;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 12px 0 0;
+    border-bottom: 0;
+  }
+  .editor.typing .props {
+    width: clamp(240px, 44vw, 360px);
+  }
+  /* 通知は、右のパネルや下端に掛からない左下に出す */
+  .toast {
+    left: calc(80px + env(safe-area-inset-left));
+    right: auto;
+    bottom: 8px;
+    max-width: min(420px, 60vw);
+  }
+  /* ダイアログ：低い画面でも、見出しと下のボタンを残して中身を送れるように、余白を詰める */
+  .modal-back {
+    padding: 6px;
+  }
+  .modal {
+    max-height: calc(100dvh - 12px);
+  }
+  .modal-head {
+    padding: 8px 14px 4px;
+  }
+  .modal-foot {
+    padding: 6px 14px;
+  }
+}
+[dir="rtl"] .props-grip .grip-chevron {
+  scale: -1 1;
+}
+
+/* ---------- タッチ端末 ---------- */
+.flip {
+  display: inline-flex;
+  transform: scaleX(-1);
+}
+.hint-touch,
+.card-actions .touch-only {
+  display: none;
+}
+.thumb-rot {
+  position: relative;
+  overflow: visible;
+}
+.thumb-rot img.rotated {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+@media (hover: none) and (pointer: coarse) {
+  .hint-pointer {
+    display: none;
+  }
+  .hint-touch {
+    display: inline;
+  }
+  /* カード上のボタンはホバーが無いので、最後にタップしたカードにだけ出す（押したボタンのフォーカスでは残さない） */
+  .card:focus-within .card-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .card.last .card-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .card-actions .pointer-only {
+    display: none;
+  }
+  .card {
+    -webkit-touch-callout: none;
+  }
+  .card.drop-before::before {
+    left: -8px;
+    width: 5px;
+    top: 0;
+    bottom: 0;
+  }
+  .card.drop-after::after {
+    right: -8px;
+    width: 5px;
+    top: 0;
+    bottom: 0;
+  }
+  .card-actions .touch-only {
+    display: inline-grid;
+  }
+  /* 操作ボタンの並び（5 個で約 194px）は、カードの幅からはみ出さない。狭いカード（幅 320px の画面で約 140px）では、ボタンの幅を詰める */
+  .card {
+    container-type: inline-size;
+  }
+  /* （100cqw はカードの内側の幅。左右の余白の分を少し足して、カードの枠いっぱいまで使う） */
+  .card-actions {
+    max-width: calc(100cqw + 16px);
+  }
+  .card-actions button {
+    flex: 0 1 36px;
+    width: 36px;
+    min-width: 24px;
+    height: 36px;
+  }
+  .card {
+    cursor: default;
+  }
+  .handle {
+    width: 18px;
+    height: 18px;
+  }
+  .handle.nw {
+    left: -12px;
+    top: -12px;
+  }
+  .handle.ne {
+    right: -12px;
+    top: -12px;
+  }
+  .handle.sw {
+    left: -12px;
+    bottom: -12px;
+  }
+  .handle.se {
+    right: -12px;
+    bottom: -12px;
+  }
+  .handle.rot {
+    top: -40px;
+    margin-left: -9px;
+  }
+  /* つまみの当たりを、見た目より広くする（18px では、指で狙っても外れやすい）。
+     広げるのは部品の外側へ：内側へ広げると、小さい部品では当たりが部品を覆ってしまい、つかんで動かせなくなる */
+  .handle::after {
+    content: "";
+    position: absolute;
+    inset: -11px;
+  }
+  .handle.nw::after {
+    inset: -16px -4px -4px -16px;
+  }
+  .handle.ne::after {
+    inset: -16px -16px -4px -4px;
+  }
+  .handle.sw::after {
+    inset: -4px -4px -16px -16px;
+  }
+  .handle.se::after {
+    inset: -4px -16px -16px -4px;
+  }
+  button,
+  .btn,
+  .icon-btn {
+    touch-action: manipulation;
+  }
+  .btn,
+  .icon-btn {
+    min-height: 40px;
+  }
+  /* 指で押しやすい大きさに（色の見本・行／段落の切り替え・プレビューのページ送り） */
+  .icon-btn {
+    min-width: 34px;
+  }
+  .swatch {
+    width: 30px;
+    height: 30px;
+  }
+  .seg.small button {
+    min-height: 34px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* ---------- 右から左の言語（アラビア語・ウルドゥー語・ペルシア語）---------- */
+/* ページ上の描画物は PDF の座標なので、UI の向きに関係なく常に左から右で扱う */
+[dir="rtl"] .page,
+[dir="rtl"] .page-outer,
+[dir="rtl"] .stage {
+  direction: ltr;
+}
+[dir="rtl"] .flip {
+  transform: none;
+}
+[dir="rtl"] .pager .icon-btn:first-child span,
+[dir="rtl"] .pager .icon-btn:last-child {
+  transform: scaleX(-1);
+}
+/* 元に戻す・やり直す：ボタンの並びが左右逆になるので、矢印の向きも合わせて裏返す
+   （裏返さないと、2 つの矢印が内側を向き合って、どちらが「戻す」か分かりにくい） */
+[dir="rtl"] .topbar .actions > .icon-btn:nth-child(1) svg,
+[dir="rtl"] .topbar .actions > .icon-btn:nth-child(2) svg {
+  transform: scaleX(-1);
+}
+
+/* ---------- 注釈・スタンプ ---------- */
+.tool-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+.tool-wrap .divider {
+  margin: 6px 4px;
+}
+.obj-stamp {
+  display: grid;
+  place-items: center;
+  border-style: solid;
+  border-radius: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  transform-origin: center;
+  letter-spacing: 0.08em;
+}
+.obj-stamp.obj-approval {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.approval-title {
+  position: absolute;
+  top: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.obj-stamp .stamp-inner {
+  position: absolute;
+  pointer-events: none;
+}
+.obj-markup-highlight {
+  mix-blend-mode: multiply;
+}
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 50vh;
+  overflow: auto;
+  padding: 2px;
+}
+
+/* ---------- パスワード保護 ---------- */
+.note.error {
+  color: var(--danger, #b42318);
+}
+.perm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+.perm-grid .checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.perm-grid input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  flex: none;
+}
+
+/* ---------- 既存画像・墨消し ---------- */
+.img-box {
+  position: absolute;
+  border: 1px dashed rgba(234, 120, 20, 0.8);
+  background: rgba(234, 120, 20, 0.08);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.img-box:hover {
+  border: 1.5px solid #ea7814;
+  background: rgba(234, 120, 20, 0.18);
+}
+.obj-imageedit {
+  background: repeating-linear-gradient(45deg, rgba(201, 58, 76, 0.28) 0 6px, rgba(255, 255, 255, 0.55) 6px 12px);
+  border: 1.5px dashed var(--danger);
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+}
+.obj-imageedit .obj-label {
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.obj-redact {
+  outline: 1px solid rgba(0, 0, 0, 0.35);
+}
+.file-btn {
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* ---------- 面付け・しおり・添付・比較 ---------- */
+.field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.field-row .field {
+  flex: 1 1 120px;
+}
+.nup-preview {
+  display: grid;
+  gap: 4px;
+  width: 160px;
+  margin: 10px 0 4px;
+  padding: 6px;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 6px;
+  background: var(--surface-2, #f6f4ef);
+}
+.nup-preview span {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  background: #fff;
+  border: 1px solid var(--line, #ddd);
+  font-size: 11px;
+  color: var(--muted, #666);
+}
+.outline-list,
+.attach-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.outline-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.outline-row.selected {
+  background: var(--accent-soft, #e8edff);
+}
+.outline-title,
+.outline-page input {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: inherit;
+  font: inherit;
+}
+.outline-title:focus,
+.outline-page input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+.outline-title {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.outline-page {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted, #666);
+  white-space: nowrap;
+}
+/* スマホ：題名を 1 行目に幅いっぱい、ページと操作のボタンを 2 行目に */
+@media (max-width: 640px), (max-height: 500px) {
+  .outline-row {
+    flex-wrap: wrap;
+  }
+  .outline-title {
+    flex-basis: 100%;
+  }
+  .outline-btns {
+    margin-left: auto;
+  }
+}
+.outline-page input {
+  width: 56px;
+}
+.outline-btns {
+  display: flex;
+  gap: 2px;
+}
+.outline-btns .icon-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+}
+.attach-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 8px;
+}
+.attach-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.attach-body b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attach-body small {
+  color: var(--muted, #666);
+}
+.compare-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.compare-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.compare-page {
+  font-variant-numeric: tabular-nums;
+  padding: 0 6px;
+}
+.compare-canvases {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+/* 拡大したときは、左右それぞれの中で動かす（左右は一緒に動く） */
+.cmp-scroll {
+  max-height: 58vh;
+  overflow: auto;
+  border: 1px solid var(--line, #ddd);
+  background: #fff;
+}
+.compare-canvases figure {
+  margin: 0;
+  min-width: 0;
+}
+.compare-canvases figcaption {
+  font-size: 12px;
+  color: var(--muted, #666);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compare-canvases canvas {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  background: #fff;
+}
+.compare-viewbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.compare-zoom {
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5em;
+  text-align: center;
+  font-size: 13px;
+}
+.compare-export .note {
+  margin: 0;
+}
+.compare-text li {
+  cursor: pointer;
+}
+.compare-text li:hover {
+  outline: 1px solid rgba(40, 90, 220, 0.45);
+}
+.compare-text li.on {
+  outline: 2px solid rgba(40, 90, 220, 0.9);
+}
+.compare-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  max-height: 24vh;
+  overflow: auto;
+  font-size: 13px;
+}
+.compare-text li {
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+}
+.compare-text li.add {
+  background: rgba(40, 160, 90, 0.12);
+}
+.compare-text li.del {
+  background: rgba(220, 30, 50, 0.1);
+}
+.compare-text li.reflow {
+  background: rgba(120, 120, 140, 0.1);
+}
+.compare-text li .sign {
+  display: inline-block;
+  width: 1em;
+  font-weight: 700;
+}
+.compare-text .cmp-quote {
+  color: var(--muted, #666);
+}
+/* 違う語・文字 */
+.cmp-mark {
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.compare-text li.add .cmp-mark {
+  background: rgba(40, 160, 90, 0.45);
+}
+.compare-text li.del .cmp-mark {
+  background: rgba(220, 30, 50, 0.38);
+  text-decoration: line-through;
+}
+.compare-sub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.compare-counts {
+  font-variant-numeric: tabular-nums;
+}
+/* ページごとの結果の地図 */
+.compare-map {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-height: 64px;
+  overflow: auto;
+  margin-bottom: 6px;
+}
+.cmp-cell {
+  width: 12px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: rgba(128, 128, 140, 0.22);
+  cursor: pointer;
+}
+/* 指で押すときは、押せる範囲を広げる */
+@media (pointer: coarse) {
+  .compare-map {
+    gap: 4px;
+    max-height: 96px;
+  }
+  .cmp-cell {
+    width: 24px;
+    height: 28px;
+  }
+}
+.cmp-cell.changed {
+  background: #e8890c;
+}
+.cmp-cell.add {
+  background: #2a9d5c;
+}
+.cmp-cell.del {
+  background: #d43c4c;
+}
+.cmp-cell.move {
+  background: #3a72d8;
+}
+.cmp-cell.on {
+  outline: 2px solid var(--text, #222);
+  outline-offset: 1px;
+}
+.compare-pair {
+  font-size: 12px;
+  color: var(--muted, #666);
+}
+.compare-notes .note {
+  margin: 6px 0 0;
+}
+@media (max-width: 640px), (max-height: 500px) {
+  .compare-canvases {
+    grid-template-columns: 1fr;
+  }
+  .cmp-scroll {
+    max-height: 40vh;
+  }
+}
+
+/* 縦中横（2〜3 桁の数字など） */
+.tcy {
+  text-combine-upright: all;
+}
+.obj-textedit.vertical .textedit-col {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: pre;
+  overflow: visible;
+  text-align: start;
+}
+
+/* 縦書きの実編集：列は縦組み、バッジは横組みのまま列の左に出す */
+.obj-textedit.vertical .textedit-badge {
+  writing-mode: horizontal-tb;
+  text-orientation: initial;
+  right: 100%;
+  left: auto;
+  top: 0;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+/* 和暦変換の一覧 */
+.wareki-head {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+}
+.wareki-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 46vh;
+  /* キーボードが出てダイアログが低くなっても、一覧を 4 行ほどは見せる（縮みきると、結果が出ていないように見える）。
+     収まらない分は、ダイアログの中をスクロールする */
+  min-height: min(10em, 40vh);
+  flex-shrink: 0.5;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.wareki-list li {
+  border-bottom: 1px solid var(--line);
+}
+.wareki-list li:last-child {
+  border-bottom: 0;
+}
+.wareki-list li.warn {
+  background: rgba(234, 120, 20, 0.07);
+}
+.wareki-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.wareki-page {
+  min-width: 68px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.wareki-from {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.wareki-to {
+  font-weight: 600;
+}
+.wareki-flag {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+  background: rgba(234, 120, 20, 0.14);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.wareki-flag.plain {
+  color: var(--muted);
+  background: var(--panel-3);
+}
+/* 検索と置換・墨消し：一致した部分を前後の文字と一緒に見せる */
+.find-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.find-text mark {
+  background: rgba(250, 204, 21, 0.45);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+.find-list .find-text mark:has(+ ins) {
+  background: transparent;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.find-text mark.gone {
+  background: transparent;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.find-break {
+  margin: 0 4px;
+  color: var(--muted);
+}
+.find-text ins {
+  text-decoration: none;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 2px;
+}
+.find-text mark.redact {
+  background: #111;
+  color: #fff;
+}
+.btn.primary.danger-fill {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+/* ダイアログのプレビュー（左にフォーム、右にプレビュー） */
+.with-preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+}
+.with-preview-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.preview-pane {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.preview-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.preview-page {
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: center;
+}
+.icon-btn.small {
+  width: 26px;
+  height: 26px;
+}
+.preview-canvas {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  min-height: 120px;
+  overflow: hidden;
+  line-height: 0;
+}
+.preview-canvas canvas {
+  display: block;
+  background: #fff;
+}
+/* 拡大：枠の中でスクロールして細部を見る */
+.preview-canvas.zoomed {
+  overflow: auto;
+  max-height: 460px;
+}
+.preview-zoom {
+  padding: 2px 9px;
+  font-size: 12px;
+  margin-right: 4px;
+}
+.btn.preview-zoom.on,
+.btn.preview-zoom.on:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.preview-canvas.busy canvas {
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+@media (max-width: 760px) {
+  .with-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .preview-pane {
+    position: static;
+    width: 100% !important;
+  }
+  .preview-pane canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .preview-pane .preview-canvas.zoomed canvas {
+    width: 300% !important;
+  }
+  .preview-canvas.zoomed {
+    max-height: 60vh;
+  }
+}
+
+.text-preview {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.text-preview pre {
+  margin: 0;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-2);
+  font: 12px/1.6 ui-monospace, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+@media (max-width: 760px) {
+  .text-preview {
+    width: 100%;
+  }
+}
+
+.change-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.change-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+.change-list li svg {
+  color: var(--accent);
+  flex: none;
+}
+.change-label {
+  font-weight: 600;
+}
+.change-detail {
+  color: var(--muted);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40%;
+}
+.change-pages {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 署名（手書き・印鑑・画像） ---------- */
+.sign-pad {
+  display: block;
+  width: 100%;
+  /* 低い画面（横向きのスマホ）では、下のボタンが見えるように低くする */
+  height: min(200px, 40vh);
+  margin-top: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: #fff;
+  /* 指やペンでなぞっても、画面がスクロールしたり拡大したりしないようにする */
+  touch-action: none;
+  cursor: crosshair;
+}
+.sign-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.sign-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--line-strong);
+  padding: 0;
+}
+.sign-color.on {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.sign-width {
+  width: 34px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel-2);
+  padding: 0 6px;
+}
+.sign-width span {
+  display: block;
+  width: 100%;
+  border-radius: 99px;
+  background: var(--text);
+}
+.sign-width.on {
+  border-color: var(--accent);
+}
+.sign-seal {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.sign-seal-preview {
+  width: 120px;
+  height: 120px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.sign-seal-form {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sign-image-preview,
+.sign-recent-item {
+  /* 透明な部分が分かるように、市松模様の上に見せる */
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%), linear-gradient(45deg, #e5e7eb 25%, transparent 25%, transparent 75%, #e5e7eb 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+.sign-image-preview {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+}
+.sign-image-preview img {
+  max-width: 100%;
+  max-height: 160px;
+}
+.sign-recent {
+  margin-top: 12px;
+}
+.sign-recent-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.sign-recent-item {
+  width: 84px;
+  height: 52px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.sign-recent-item img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* 文字認識（OCR） */
+.ocr-langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  max-height: 150px;
+  overflow: auto;
+}
+.ocr-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 4px;
+}
+.ocr-progress progress {
+  flex: 1;
+  height: 8px;
+}
+
+/* 指で操作する画面：小さいアイコンのボタンは、見た目はそのままで、押せる範囲を上下左右に広げる（44px 角に近づける） */
+@media (pointer: coarse) {
+  /* 画面の端のボタンで、広げた範囲が画面の外へ出て横にずれないようにする */
+  html,
+  body {
+    overflow-x: clip;
+  }
+  .icon-btn,
+  .seg button {
+    position: relative;
+  }
+  .icon-btn::after,
+  .seg button::after {
+    content: "";
+    position: absolute;
+    inset: -5px -4px;
+  }
+  .seg button::after {
+    inset: -5px 0;
+  }
+}
+
+/* 署名の画面：承認欄の見本 */
+.approval-sample {
+  /* 置かれる承認欄は、画面の言語に関係なく左から右に並ぶ。見本も同じ向きにする */
+  direction: ltr;
+  display: flex;
+  align-self: flex-start;
+  border: 1px solid var(--text);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.approval-sample > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 56px;
+  border-left: 1px solid var(--text);
+}
+.approval-sample > div:first-child {
+  border-left: 0;
+}
+.approval-sample span:first-child {
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 12px;
+  border-bottom: 1px solid var(--text);
+  white-space: nowrap;
+}
+.approval-sample span:last-child {
+  height: 40px;
+}
+
+/* ショートカットの一覧 */
+.shortcut-head {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.shortcut-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.shortcut-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.shortcut-table td:first-child {
+  white-space: nowrap;
+  width: 46%;
+}
+.shortcut-table kbd {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--panel-2);
+}
+
+/* 動きを減らす設定の端末では、アニメーションと滑らかなスクロールを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* リンク（保存した PDF では見えない範囲。編集中だけ点線の枠と行き先を出す） */
+.obj-link {
+  border: 1.5px dashed #2f6fd6;
+  background: rgba(47, 111, 214, 0.08);
+}
+.obj-link .link-label {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 0 4px;
+  color: #fff;
+  background: #2f6fd6;
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+
+/* 入力欄（保存するとフォームの入力欄になる） */
+.obj-field {
+  border: 1px solid #5b7fc4;
+  background: rgba(91, 127, 196, 0.12);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.obj-field .field-name {
+  font-size: 10px;
+  color: #3a5a9a;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.obj-field-multiline {
+  align-items: flex-start;
+}
+.obj-field .field-caret {
+  margin-inline-start: auto;
+  padding: 0 4px;
+  font-size: 10px;
+  color: #3a5a9a;
+  pointer-events: none;
+}
+.obj-field .field-check {
+  width: 70%;
+  height: 70%;
+  margin: auto;
+  border: 1px solid #5b7fc4;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* スマホ：上のバーに入りきらないので、画面の明るさは「このソフトについて」で選ぶ */
+@media (max-width: 640px), (max-height: 500px) {
+  .theme-switch {
+    display: none;
+  }
+}
+.obj-field .field-radio {
+  width: 70%;
+  height: 70%;
+  margin: auto;
+  border: 1px solid #5b7fc4;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+}
+.obj-field-signature {
+  border-style: dashed;
+}
+
+/* 注釈の一覧 */
+.annot-list button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.annot-list button:hover {
+  background: var(--panel-2);
+}
+.annot-kind {
+  flex: none;
+  font-weight: 600;
+  min-width: 5em;
+}
+.annot-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 一覧から移ったときに、その注釈の場所を一瞬だけ示す枠 */
+.annot-flash {
+  position: absolute;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  box-shadow: 0 0 0 4px rgba(47, 85, 212, 0.25);
+  pointer-events: none;
+  animation: annot-flash 2s ease-out forwards;
+  z-index: 5;
+}
+@keyframes annot-flash {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 計測 */
+.obj-measure .measure-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 3px;
+  pointer-events: auto;
+  cursor: move;
+}
+.obj-measure.selected .measure-label {
+  outline: 1.5px solid var(--accent);
+}
+.measure-value {
+  margin: 0;
+  font-size: 15px;
+}
+.measure-scale {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.measure-scale input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 計測：縮尺を合わせる欄（実際の長さ・単位・ボタンを 1 行に） */
+.measure-calibrate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.measure-calibrate input {
+  flex: 1;
+  min-width: 0;
+}
+/* 計測の点のつまみ：線の色の縁取り */
+.measure-dot {
+  fill: #fff;
+  stroke-width: 2;
+}
+
+/* 描画中に問題が起きたときの案内（画面の一部、または全体の代わりに出す） */
+.crash {
+  max-width: 560px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+.crash h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.crash-detail {
+  margin: 8px 0;
+  padding: 8px 10px;
+  max-height: 120px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  border: 1px solid var(--line, #ccc);
+  border-radius: 6px;
+}
+.crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.crash-screen {
+  padding: 24px 0;
+}
+.crash-screen .note {
+  max-width: 560px;
+  margin: 12px auto;
+  padding: 0 16px;
+}
+.modal .crash {
+  margin: 0;
+  padding: 0;
+}
+/* ダイアログの中では、題名はダイアログの見出しが兼ねる */
+.modal .crash h2 {
+  display: none;
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Washi PDF: 青の角丸に和紙の一枚（右上を折り返し）。下部は青グラデの流線（漉き水の流れ） -->
+  <defs>
+    <linearGradient id="washi-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3d66ea"/>
+      <stop offset="1" stop-color="#1f3eb0"/>
+    </linearGradient>
+    <linearGradient id="washi-flow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5fc5ff" stop-opacity="0.35"/>
+      <stop offset="0.45" stop-color="#8fdcff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#washi-bg)"/>
+  <path d="M18 10h19l9 9v23H18z" fill="#ffffff"/>
+  <path d="M37 10v9h9z" fill="#c9d6f9"/>
+  <path d="M24 25h14M24 31h14M24 37h8" stroke="#2f55d4" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M7 50c9-7 15 2 23-1s13-7 27-4" fill="none" stroke="url(#washi-flow)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M11 57c8-5 13 1 21-1s12-5 25-3" fill="none" stroke="url(#washi-flow)" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+</svg>

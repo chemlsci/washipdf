@@ -1,0 +1,30 @@
+Washi PDF
+Copyright 2026 Washi PDF contributors
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full text.
+
+The "Washi PDF" name and logo identify the official distributions
+(the versioned releases of this repository on GitHub, and washipdf.com). The Apache License does not grant
+permission to use these names and marks for modified versions or other
+distributions; please use a different name for forks.
+
+This product bundles third-party software and fonts. The copyright
+notices and license texts of all bundled components are collected in
+the THIRD_PARTY_LICENSES file, and are also shown inside the application
+("About this software"). Summary:
+
+  pdf.js                       Apache-2.0   Mozilla Foundation
+  pdf-lib, @pdf-lib/*          MIT          Andrew Dillon and contributors
+  React, react-dom, scheduler  MIT          Meta Platforms, Inc. and affiliates
+  pako                         MIT AND Zlib Vitaly Puzrin, Andrey Tupitsin
+  tslib                        0BSD         Microsoft Corporation
+  Adobe CMap resources         BSD-3-Clause Adobe Systems Incorporated
+  OpenJPEG (WASM)              BSD-2-Clause Université catholique de Louvain and others
+  JBIG2 decoder (WASM)         BSD-3-Clause The PDFium Authors
+  qcms (WASM)                  MIT          Mozilla Corporation, Marti Maria
+  regenerator-runtime          MIT          Facebook, Inc.
+  BIZ UDPGothic / UDPMincho    OFL-1.1      The BIZ UDGothic / BIZ UDMincho Project Authors
+  Noto Sans / Serif, Noto Sans Thai / Arabic / Hebrew / Devanagari / Bengali
+                               OFL-1.1      The Noto Project Authors
+  Noto Sans / Serif SC, TC, KR OFL-1.1      Adobe (Source Han)

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem / セキュリティ上の問題
+    url: https://github.com/chemlsci/washipdf/security/advisories/new
+    about: Please report privately. / 非公開で報告してください。

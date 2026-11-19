@@ -1,0 +1,53 @@
+# タグ（v1.2.3 など）を push すると、配布用の単一 HTML（6 版）を添付した Release の下書きを自動で作る（確かめてから公開する）。
+#   git tag v1.0.0 && git push origin v1.0.0
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+# 同じタグのリリースを同時に 2 つ作らない
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: タグと package.json の版が同じか（違えば止める）
+        run: |
+          want="v$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "${want}" ]; then echo "::error::タグ ${GITHUB_REF_NAME} が package.json の版（${want}）と違います"; exit 1; fi
+      - run: npm ci
+      - run: npm run typecheck
+      - run: node scripts/licenses.mjs --check
+      - run: npm run check-font
+      - run: npm test
+      - name: 6 版をビルドし、通信ゼロ検査と SHA-256・リリースノートを作る
+        run: node scripts/build-release.mjs "${GITHUB_REF_NAME}"
+      - name: 出どころの証明（CI がこのリポジトリから作ったことを署名で示す）
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: |
+            out/*.html
+            out/SHA256SUMS.txt
+      # 下書きとして作る：添付と説明を確かめてから、Releases の画面で「Publish release」を押して公開する
+      - name: Release の下書きを作成
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" out/*.html out/SHA256SUMS.txt \
+            --draft \
+            --title "Washi PDF ${GITHUB_REF_NAME}" \
+            --notes-file out/notes.md

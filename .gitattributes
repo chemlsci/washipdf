@@ -1,0 +1,9 @@
+# 文字のファイルは、どの OS で取り出しても改行を LF にそろえる（配布物の SHA-256 が OS によって変わらないように）
+* text=auto eol=lf
+# 中身を変えてはいけないもの
+*.pdf binary
+*.ttf binary
+*.otf binary
+*.png binary
+*.jpg binary
+*.woff2 binary

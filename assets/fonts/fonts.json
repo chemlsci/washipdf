@@ -1,0 +1,223 @@
+{
+  "_comment": "同梱フォントの一覧。packs はビルドのフラグ --fonts=ja,latin で選ぶ単位。scripts は文字範囲（src/lib/scripts.ts の分類名）。",
+  "packs": {
+    "ja": [
+      "gothic",
+      "mincho",
+      "notosans",
+      "notoserif",
+      "thai",
+      "arabic",
+      "hebrew",
+      "devanagari",
+      "bengali"
+    ],
+    "latin": [
+      "notosans",
+      "notoserif"
+    ],
+    "intl": [
+      "notosans",
+      "notoserif",
+      "thai",
+      "arabic",
+      "hebrew",
+      "devanagari",
+      "bengali"
+    ],
+    "zh-CN": [
+      "notosanssc",
+      "notoserifsc"
+    ],
+    "zh-TW": [
+      "notosanstc",
+      "notoseriftc"
+    ],
+    "ko": [
+      "notosanskr",
+      "notoserifkr"
+    ]
+  },
+  "fonts": {
+    "gothic": {
+      "file": "BIZUDPGothic-Regular.ttf",
+      "name": "BIZ UDP Gothic",
+      "family": "sans",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "kana",
+        "han"
+      ],
+      "license": "OFL-BIZUDGothic.txt"
+    },
+    "mincho": {
+      "file": "BIZUDPMincho-Regular.ttf",
+      "name": "BIZ UDP Mincho",
+      "family": "serif",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "kana",
+        "han"
+      ],
+      "license": "OFL-BIZUDMincho.txt"
+    },
+    "notosans": {
+      "file": "NotoSans.ttf",
+      "name": "Noto Sans",
+      "family": "sans",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "vietnamese"
+      ],
+      "license": "OFL-Noto.txt"
+    },
+    "notoserif": {
+      "file": "NotoSerif.ttf",
+      "name": "Noto Serif",
+      "family": "serif",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "vietnamese"
+      ],
+      "license": "OFL-Noto.txt"
+    },
+    "thai": {
+      "file": "NotoSansThai.ttf",
+      "name": "Noto Sans Thai",
+      "family": "sans",
+      "scripts": [
+        "thai"
+      ],
+      "license": "OFL-Noto.txt",
+      "shaping": true
+    },
+    "arabic": {
+      "file": "NotoSansArabic.ttf",
+      "name": "Noto Sans Arabic",
+      "family": "sans",
+      "scripts": [
+        "arabic"
+      ],
+      "license": "OFL-Noto.txt",
+      "shaping": true
+    },
+    "hebrew": {
+      "file": "NotoSansHebrew.ttf",
+      "name": "Noto Sans Hebrew",
+      "family": "sans",
+      "scripts": [
+        "hebrew"
+      ],
+      "license": "OFL-Noto.txt",
+      "shaping": true
+    },
+    "devanagari": {
+      "file": "NotoSansDevanagari.ttf",
+      "name": "Noto Sans Devanagari",
+      "family": "sans",
+      "scripts": [
+        "devanagari"
+      ],
+      "license": "OFL-Noto.txt",
+      "shaping": true
+    },
+    "bengali": {
+      "file": "NotoSansBengali.ttf",
+      "name": "Noto Sans Bengali",
+      "family": "sans",
+      "scripts": [
+        "bengali"
+      ],
+      "license": "OFL-Noto.txt",
+      "shaping": true
+    },
+    "notosanssc": {
+      "file": "NotoSansSC.ttf",
+      "name": "Noto Sans SC",
+      "family": "sans",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    },
+    "notoserifsc": {
+      "file": "NotoSerifSC.ttf",
+      "name": "Noto Serif SC",
+      "family": "serif",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    },
+    "notosanstc": {
+      "file": "NotoSansTC.ttf",
+      "name": "Noto Sans TC",
+      "family": "sans",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    },
+    "notoseriftc": {
+      "file": "NotoSerifTC.ttf",
+      "name": "Noto Serif TC",
+      "family": "serif",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    },
+    "notosanskr": {
+      "file": "NotoSansKR.ttf",
+      "name": "Noto Sans KR",
+      "family": "sans",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "hangul",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    },
+    "notoserifkr": {
+      "file": "NotoSerifKR.ttf",
+      "name": "Noto Serif KR",
+      "family": "serif",
+      "scripts": [
+        "latin",
+        "greek",
+        "cyrillic",
+        "hangul",
+        "han",
+        "kana"
+      ],
+      "license": "OFL-NotoCJK.txt"
+    }
+  }
+}

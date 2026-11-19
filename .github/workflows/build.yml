@@ -1,0 +1,103 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 同じ枝に続けて push したら、前の実行は止める
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: 型チェック
+        run: npm run typecheck
+      - name: ライセンス検証（禁止ライセンス・不明なライセンスがあれば失敗）
+        run: node scripts/licenses.mjs --check
+      - name: THIRD_PARTY_LICENSES が最新か
+        run: |
+          node scripts/licenses.mjs --write
+          git diff --exit-code -- THIRD_PARTY_LICENSES || (echo "THIRD_PARTY_LICENSES が古いです。node scripts/licenses.mjs --write を実行してコミットしてください。" && exit 1)
+      - name: 日本語フォント埋め込みの確認
+        run: npm run check-font
+      - name: 自動テスト（抽出・画像差分・再読込・禁則処理）
+        run: npm test
+      - name: ビルド
+        run: npm run build
+      - name: 通信ゼロの静的検査
+        run: node scripts/check-offline.mjs
+      - name: ブラウザ（Chromium）の準備
+        run: |
+          npx playwright install chromium
+          # 追加のシステム部品（フォントなど）は apt で取りに行く。実行環境の通信が不調で取れないときも、
+          # 入っている部品だけで先へ進む（ここで CI 全体が落ちて、テストの結果が分からなくなるのを避ける）
+          timeout 240 npx playwright install-deps chromium || echo "::warning::追加のシステム部品を取得できませんでした。入っている部品だけで E2E を実行します"
+      - name: 通信ゼロの実機検査と E2E（file:// で開いて書き換え→保存）
+        run: npm run e2e
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: washi-pdf-html
+          path: dist/washi-pdf.html
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: dist/.e2e/*.png
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+  # Firefox と Safari 相当（WebKit）でも、開く → 書き換え → 全ツールを開く → 保存 の一巡を確かめる。
+  # ブラウザの入手に失敗しても、上のビルドとテストの結果には影響させない
+  browsers:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: ビルド
+        run: npm run build
+      - name: ブラウザ（${{ matrix.browser }}）の準備
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: 一巡の検査（PC の幅）
+        run: node test/e2e/browsers-flow.mjs --browser=${{ matrix.browser }}
+      - name: 一巡の検査（スマホの幅）
+        if: always()
+        run: node test/e2e/browsers-flow.mjs --browser=${{ matrix.browser }} --mobile
+      # Safari のエンジンで、iPad・iPhone の画面の大きさ・タッチ・UA をまねる（実機の代わりではない。iOS 向けの分岐も通す）
+      - name: iPad・iPhone をまねた検査（WebKit）
+        if: always() && matrix.browser == 'webkit'
+        run: |
+          rc=0
+          for d in "iPad (gen 11)" "iPad Mini" "iPad Pro 11 landscape"; do
+            node test/e2e/browsers-flow.mjs --browser=webkit "--device=$d" || rc=1
+            node test/e2e/sign-flow.mjs --browser=webkit "--device=$d" || rc=1
+          done
+          node test/e2e/browsers-flow.mjs --browser=webkit --mobile "--device=iPhone 15" || rc=1
+          node test/e2e/sign-flow.mjs --browser=webkit "--device=iPhone 15" || rc=1
+          exit $rc
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: browsers-${{ matrix.browser }}
+          path: dist/.e2e/browsers-*
+          include-hidden-files: true
+          if-no-files-found: ignore

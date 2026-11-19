@@ -1,0 +1,31 @@
+# gitleaks の設定。既定のルール（API キー・トークン・秘密鍵など）に、内部ネットワークの IP アドレスの検出を足す。
+# 使い方：
+#   gitleaks git -v                      … 履歴全体を検査
+#   gitleaks dir -v .                    … 作業ツリーだけを検査（公開前の確認）
+# CI では .github/workflows/gitleaks.yml が push / PR ごとに実行する。
+#
+# 注意：gitleaks は文字列パターンの検出であり、PDF の中身や画像は見ない。
+#       test/fixtures/ に入れる PDF は人の目でも確認すること（実文書は入れない）。
+
+title = "Washi PDF gitleaks config"
+
+[extend]
+# gitleaks 同梱の既定ルールを使う
+useDefault = true
+
+[[rules]]
+id = "private-ip-hostnames"
+description = "内部ネットワークの IP アドレス"
+regex = '''\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})\b'''
+keywords = ["10.", "192.168.", "172."]
+
+[allowlist]
+description = "検査しないファイル"
+paths = [
+  '''^assets/fonts/''',
+  '''^test/fixtures/.*\.pdf$''',
+  '''^THIRD_PARTY_LICENSES$''',
+  '''(^|/)package-lock\.json$''',
+]
+# 既定ルールの誤検知（例：テストの固定値）を除外する場合は regexes に追加する
+regexes = []

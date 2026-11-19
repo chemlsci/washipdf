@@ -1,0 +1,52 @@
+name: Bug report / 不具合の報告
+description: Something does not work as expected / 期待どおりに動かない
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not attach PDFs that contain personal or confidential information** — attachments are public.
+        **個人情報や機密を含む PDF は添付しないでください**（添付は誰でも見られます）。
+        Security problems: see SECURITY.md / セキュリティ上の問題は SECURITY.md の方法で。
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened / 起きたこと
+      description: What you did, what you expected, and what happened instead. / したこと、期待した結果、実際の結果
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 再現の手順
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / バージョン
+      description: Shown under "About" / 「このソフトについて」に表示されます
+    validations:
+      required: true
+  - type: dropdown
+    id: edition
+    attributes:
+      label: How do you use it / 使い方
+      options:
+        - Downloaded HTML file / ダウンロードした HTML ファイル
+        - Web version (washipdf.com) / Web 版
+        - Installed app (PWA) / インストールしたアプリ
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser and OS / ブラウザーと OS
+      placeholder: "Chrome / Windows 11, Safari / iOS ..."
+    validations:
+      required: true
+  - type: input
+    id: producer
+    attributes:
+      label: Software that made the PDF (if known) / PDF を作ったソフト（分かれば）
+      placeholder: "Word, LibreOffice, a scanner ..."
