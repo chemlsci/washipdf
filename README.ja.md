@@ -4,13 +4,15 @@
 
 [English](README.md) | **日本語**
 
+**PDF を、ブラウザーの中で編集。ファイルはブラウザーの外に出ません。**
+
 **オンライン版：[washipdf.com](https://washipdf.com)**（PWA としてインストール可）／ **ダウンロード版：[Releases](https://github.com/chemlsci/washipdf/releases)**
 
-**HTMLファイル1つ**で動くPDF編集ツールです。ダウンロードしたファイル（例：`washi-pdf-v1.0.0-ja.html`）をダブルクリックするとブラウザーで開き、そのまま使えます。インストールも管理者権限もサーバーもいりません。PDF はブラウザーの中だけで処理され、どこにも送られません。ダウンロード版は一切通信しません（Web 版は、アプリ本体・更新（押したときだけ）・文字認識のデータを washipdf.com から受け取るだけです）。加えて Content-Security-Policy（`default-src 'none'; connect-src 'none'`）で、外部への接続（fetch / XHR / WebSocket）、外部のスクリプト・画像・フォントの読み込み、フォーム送信をブラウザーに止めさせています。悪意ある PDF や不具合でアプリ内に不正なコードが紛れ込んでも、通常の方法では外へ送れません（多層防御であり、絶対の保証ではありません。CSP では止められない手段のうち、WebRTC はアプリの起動時に使えなくし、アプリの外のページへの移動は、移る前に尋ねます。移動の確認は、移動を見張る仕組み（Navigation API）のあるブラウザーで働き、無いブラウザーでは新しい窓を開く動作だけを見張ります）。ファイル自体のすり替えは、Releases の SHA-256 で確認できます。
+**HTMLファイル1つ**で動くPDF編集ツールです。ダウンロードしたファイル（例：`washi-pdf-v1.0.1-ja.html`）をダブルクリックするとブラウザーで開き、そのまま使えます。インストールも管理者権限もサーバーもいりません。PDF はブラウザーの中だけで処理され、どこにも送られません。ダウンロード版は一切通信しません（Web 版は、アプリ本体・更新（押したときだけ）・文字認識のデータを washipdf.com から受け取るだけです）。加えて Content-Security-Policy（`default-src 'none'; connect-src 'none'`）で、外部への接続（fetch / XHR / WebSocket）、外部のスクリプト・画像・フォントの読み込み、フォーム送信をブラウザーに止めさせています。悪意ある PDF や不具合でアプリ内に不正なコードが紛れ込んでも、通常の方法では外へ送れません（多層防御であり、絶対の保証ではありません。CSP では止められない手段のうち、WebRTC はアプリの起動時に使えなくし、アプリの外のページへの移動は、移る前に尋ねます。移動の確認は、移動を見張る仕組み（Navigation API）のあるブラウザーで働き、無いブラウザーでは新しい窓を開く動作だけを見張ります）。ファイル自体のすり替えは、Releases の SHA-256 で確認できます。
 
 **CDN にも頼りません。** pdf.js・フォント・WASM・CMap まで全部を HTML 1 個に同梱しているので、使うときに外部からコードを取ってくることがありません。CDN から部品を読み込む方式は、配信元やその元のパッケージが乗っ取られると、正規の URL から改ざんされたコードがそのまま届きます（2024 年の polyfill.io 事件など）。また CDN 側には「いつ・どの IP から・どのツールを使ったか」が残ります。Washi PDF は**配布物を一度 SHA-256 で確認すれば、以後はずっと同じ中身**で動きます（CDN 方式は「開くたびに配信元を信頼する」、Washi PDF は「一度確認して固定」）。
 
-日本語PDFの **既存テキストを「上から隠す」のではなく本当に書き換える** ことを目標にしています（書き換えられる行では、検索・コピーで元の文字が出てきません。上から隠すことしかできない行は、編集の前にそう表示します）。
+PDF に**もとからある文字も直せます**。とくに日本語の PDF に力を入れています。書き換えられる行では元の文字を消して新しい文字を書き込むので、保存後に検索・コピーしても元の文字は出てきません（上から重ねて書くことしかできない行は、編集の前にそう表示します）。
 
 ## できること
 
@@ -84,6 +86,7 @@
   ```
 - 公式の Web 版は [washipdf.com](https://washipdf.com) です。機密文書を扱うときは Releases の HTML をダウンロードして、手元のパソコンで開くことをおすすめします（SHA-256 と出どころ証明で本物か確認できます）。
 - 組織の中で配るときは、共有フォルダやチャットのファイル共有を使ってください。メール添付の `.html` はブロックされることが多いので zip に固めます。
+- **ダウンロードしたファイルは、開く前に確かめられます。** Releases のファイルは、このリポジトリのソースから GitHub の CI が組み立て、そのことを署名つきで公開の記録に残しています（出どころの証明）。`gh attestation verify` で、どのコミットから作られたかが分かり、手で差し替えたファイルは見破れます。Releases から直接ダウンロードしたなら、普段はそのまま使って構いません。人から受け取ったファイルは、SHA-256 を Releases の値と照らし合わせると、公式のものと同じかが分かります。
 - Docker 版は提供しません。
 
 **商標について**：本ソフトは Apache License 2.0 ですが、Apache-2.0 は商標の使用許可を含みません。「Washi PDF」の名前とロゴは公式配布物にのみ使用できます。改変版を配布する場合は別の名前を使ってください（`NOTICE` 参照）。
@@ -99,7 +102,7 @@
 | `zh-cn` 简体中文 | 簡体字中国語・欧文（ゴシック・明朝） | 約 23 MiB | [/app/zh-cn/](https://washipdf.com/app/zh-cn/) |
 | `zh-tw` 繁體中文 | 繁体字中国語・欧文（ゴシック・明朝） | 約 17 MiB | [/app/zh-tw/](https://washipdf.com/app/zh-tw/) |
 | `ko` 한국어 | 韓国語・欧文（ゴシック・明朝） | 約 15 MiB | [/app/ko/](https://washipdf.com/app/ko/) |
-| `all` 全部入り | 上記すべて（スマホには重い） | 約 56 MiB | [/app/all/](https://washipdf.com/app/all/) |
+| `all` 全部入り | 上記すべて（スマホには重い） | 約 57 MiB | [/app/all/](https://washipdf.com/app/all/) |
 
 ## スマホ・アプリとして使う（PWA）
 
@@ -211,7 +214,7 @@ npm run build        # → dist/washi-pdf.html
 | `zh-CN` | `node scripts/build.mjs --fonts=zh-CN --out=dist/washi-pdf-zh-CN.html` | Noto Sans SC・Noto Serif SC（簡体字中国語・欧文） | 約 23 MiB |
 | `zh-TW` | `node scripts/build.mjs --fonts=zh-TW --out=dist/washi-pdf-zh-TW.html` | Noto Sans TC・Noto Serif TC（繁体字中国語・欧文） | 約 17 MiB |
 | `ko` | `node scripts/build.mjs --fonts=ko --out=dist/washi-pdf-ko.html` | Noto Sans KR・Noto Serif KR（韓国語・欧文） | 約 15 MiB |
-| `all` | `node scripts/build.mjs --fonts=all --out=dist/washi-pdf-all.html` | 上のすべて。漢字は UI 言語に合うフォント（日本語なら BIZ UD、中国語なら SC／TC、韓国語なら KR）を先に選ぶ | 約 56 MiB |
+| `all` | `node scripts/build.mjs --fonts=all --out=dist/washi-pdf-all.html` | 上のすべて。漢字は UI 言語に合うフォント（日本語なら BIZ UD、中国語なら SC／TC、韓国語なら KR）を先に選ぶ | 約 57 MiB |
 
 複数のパックを `--fonts=ja,ko` のように組み合わせることもできます。
 
@@ -247,6 +250,10 @@ test/
 docs/i18n.md           多言語対応の説明
 assets/fonts/          同梱フォント（BIZ UDP ゴシック・明朝、Noto 各フォント）とそのライセンス（SIL Open Font License 1.1）、fonts.json
 ```
+
+## 開発の支援
+
+Washi PDF は無料で、これからも無料です。役に立ったと感じたら、[Ko-fi](https://ko-fi.com/chemlsci) から開発を支援していただけるとうれしいです。支援は任意で、してもしなくてもアプリの働きは同じです（支援した人だけの機能もありません）。
 
 ## ライセンス
 

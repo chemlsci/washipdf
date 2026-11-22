@@ -3,6 +3,7 @@ import { ShortcutsDialog } from "./tools/ShortcutsDialog";
 import { AnnotListDialog } from "./tools/AnnotListDialog";
 import { BatchDialog } from "./tools/BatchDialog";
 import { askConfirm } from "@/lib/confirm";
+import { announceLaunch, launchKey } from "@/lib/launchDedupe";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type DocDecor, type DocMeta, defaultSettings } from "@/lib/docOps";
 import { buildPdf, type BuildOptions } from "@/lib/exportPdf";
@@ -1192,6 +1193,13 @@ function Studio({ embedFont }: { embedFont?: BuildOptions["embedFont"] }) {
     lq.setConsumer(async (params) => {
       if (!params.files?.length) return;
       const files = await Promise.all(params.files.map((h) => h.getFile()));
+      // 1 回の「開く」でウィンドウが 2 つ開いたとき（Windows の Edge で起きる）、あとのほうはファイルを開かずに閉じる
+      const duplicate = await announceLaunch(launchKey(files), () => {
+        leaveGuard.current.skip = true;
+        window.close();
+      });
+      // 閉じられなかったとき（ブラウザーが許さないなど）は、空の画面のまま残さず、ファイルを開く
+      if (duplicate) await new Promise((r) => setTimeout(r, 600));
       addFilesRef.current(files, undefined, params.files as FileHandle[]);
     });
   }, []);
@@ -1854,6 +1862,12 @@ function AboutDialog({ autosave, onAutosave, hasDocument, onReload, onClose }: {
         <li>
           {t("about.site")}{" "}
           <a href="https://washipdf.com" target="_blank" rel="noopener noreferrer">
+            washipdf.com
+          </a>
+        </li>
+        <li>
+          {t("about.support")}{" "}
+          <a href="https://washipdf.com/#support" target="_blank" rel="noopener noreferrer">
             washipdf.com
           </a>
         </li>

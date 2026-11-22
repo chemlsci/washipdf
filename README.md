@@ -4,13 +4,15 @@
 
 **English** | [日本語](README.ja.md)
 
+**Edit PDFs right in your browser. Your files never leave it.**
+
 **Online: [washipdf.com](https://washipdf.com)** (installable as a PWA) / **Download: [Releases](https://github.com/chemlsci/washipdf/releases)**
 
-A PDF editor that runs from **a single HTML file**. Double-click the downloaded file (for example `washi-pdf-v1.0.0-ja.html`) and it opens in your browser — no install, no admin rights, no server. PDFs are processed only inside your browser and are never sent anywhere. The downloaded file makes no network requests at all; the web version only receives the app itself, updates (when you ask) and text-recognition data from washipdf.com. On top of that, a Content-Security-Policy (`default-src 'none'; connect-src 'none'`) tells the browser to block connections (fetch / XHR / WebSocket), external scripts, images and fonts, and form posts, so that code which slipped in through a crafted PDF or a bug would have no ordinary way to send data out. This is defence in depth, not an absolute guarantee. Of the channels a CSP cannot block, WebRTC is disabled when the app starts, and leaving the app for an outside page asks you first (this works in browsers with the Navigation API; elsewhere only opening new windows is checked). A replaced or tampered file can be detected with the SHA-256 published on Releases.
+A PDF editor that runs from **a single HTML file**. Double-click the downloaded file (for example `washi-pdf-v1.0.1-ja.html`) and it opens in your browser — no install, no admin rights, no server. PDFs are processed only inside your browser and are never sent anywhere. The downloaded file makes no network requests at all; the web version only receives the app itself, updates (when you ask) and text-recognition data from washipdf.com. On top of that, a Content-Security-Policy (`default-src 'none'; connect-src 'none'`) tells the browser to block connections (fetch / XHR / WebSocket), external scripts, images and fonts, and form posts, so that code which slipped in through a crafted PDF or a bug would have no ordinary way to send data out. This is defence in depth, not an absolute guarantee. Of the channels a CSP cannot block, WebRTC is disabled when the app starts, and leaving the app for an outside page asks you first (this works in browsers with the Navigation API; elsewhere only opening new windows is checked). A replaced or tampered file can be detected with the SHA-256 published on Releases.
 
 **No CDN, either.** pdf.js, fonts, WASM and CMaps are all bundled into the one HTML file, so nothing is fetched at run time. With apps that load components from a CDN, a compromised CDN or upstream package means tampered code arrives from the official URL (e.g. the 2024 polyfill.io incident), and the CDN can see when, from which IP and which component was requested. With Washi PDF you **verify the file once (SHA-256) and it stays the same forever** — instead of trusting a server every time you open it.
 
-The main goal is to **really rewrite existing text** in PDFs — especially Japanese — instead of covering it up. For lines that can be rewritten, searching or copying the saved PDF no longer finds the old text (the app tells you before you edit a line that can only be covered).
+It can also **edit the text already in a PDF**, with particular care for Japanese. On lines it can rewrite, the old text is deleted and the new text is written in its place, so searching or copying the saved PDF no longer finds the old text (the app tells you before you edit a line where the new text can only be drawn over the old one).
 
 ## Features
 
@@ -67,7 +69,7 @@ Every edition has the same features and a 20-language UI. They differ only in th
 | `zh-cn` Simplified Chinese | Simplified Chinese, Latin (sans & serif) | ~23 MiB | [/app/zh-cn/](https://washipdf.com/app/zh-cn/) |
 | `zh-tw` Traditional Chinese | Traditional Chinese, Latin (sans & serif) | ~17 MiB | [/app/zh-tw/](https://washipdf.com/app/zh-tw/) |
 | `ko` Korean | Korean, Latin (sans & serif) | ~15 MiB | [/app/ko/](https://washipdf.com/app/ko/) |
-| `all` All languages | Everything above (heavy on phones) | ~56 MiB | [/app/all/](https://washipdf.com/app/all/) |
+| `all` All languages | Everything above (heavy on phones) | ~57 MiB | [/app/all/](https://washipdf.com/app/all/) |
 
 ## Install as an app (PWA)
 
@@ -98,6 +100,7 @@ The server can see that files were requested (IP address, time, which file). The
   certutil -hashfile <file> SHA256                # Windows
   gh attestation verify <file> --repo chemlsci/washipdf   # proves it was built by this repository's CI
   ```
+- **You can check a download before you open it.** The release files are built by GitHub's CI from the source in this repository, and each build is recorded with a signature in a public log (build provenance). `gh attestation verify` shows which commit a file was built from and exposes a file replaced by hand; if you downloaded it directly from Releases, you can normally just use it. For a copy you received from someone else, compare its SHA-256 with the value on the release.
 - No Docker image is provided.
 
 **Trademark:** the software is Apache-2.0, which does not grant trademark rights. The name "Washi PDF" and its logo are for official builds only; please use a different name for modified versions (see `NOTICE`).
@@ -124,7 +127,7 @@ node scripts/build.mjs --fonts=intl --out=dist/washi-pdf-en.html   # font packs:
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Rebuild on every save |
-| `npm test` | Automated tests (text really replaced, no pixel changes outside edits, reload, kinsoku, annotations, encryption interop, …) |
+| `npm test` | Automated tests (text replaced in the file, no pixel changes outside edits, reload, kinsoku, annotations, encryption interop, …) |
 | `npm run e2e` | Open the built HTML from `file://` in Playwright and run full editing flows, checking that no network request is made |
 | `npm run licenses` | License check (fails on forbidden or unknown licenses) |
 | `npm run check-offline` | Static check that the build loads nothing external |
@@ -166,6 +169,10 @@ This repository receives one commit per release; development happens elsewhere (
 - Very heavy pages (millions of drawing operations, content streams of tens of MB, deeply repeated form XObjects) can make the app very slow or stop the tab, especially on phones. Pages are drawn at a lower resolution when zooming in would exceed the browser's canvas limit (they look slightly blurred instead of blank).
 
 See [README.ja.md](README.ja.md) for the detailed design notes.
+
+## Support
+
+Washi PDF is free and stays free. If it saves you time, you can support its development on [Ko-fi](https://ko-fi.com/chemlsci). It is entirely optional: the app works the same either way, and supporters get no extra features.
 
 ## License
 

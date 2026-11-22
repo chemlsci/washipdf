@@ -8,7 +8,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { gzipSync } from "node:zlib";
+import { gzipSync } from "fflate";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(join(root, "package.json"));
@@ -34,10 +34,11 @@ const ocr = ocrFile ? JSON.parse(readFileSync(ocrFile, "utf8")) : null;
 const b64 = (buf) => Buffer.from(buf).toString("base64");
 /**
  * 埋め込むデータを gzip で縮める（フォントは 4〜6 割、プログラムは 3 割ほどになる。HTML が小さくなり、
- * Web 版の大きな版も静的配信の上限に収まる）。ヘッダーの OS の欄は「不明」にそろえ、どの環境で作っても同じバイト列にする
+ * Web 版の大きな版も静的配信の上限に収まる）。どの環境で組み立てても同じバイト列になるよう、圧縮は Node の zlib
+ * （CPU や版で出力が変わりうる）ではなく、JavaScript だけで書かれた fflate で行い、時刻は 0、OS の欄は「不明」にそろえる
  */
 const pack = (buf) => {
-  const z = gzipSync(Buffer.from(buf), { level: 9 });
+  const z = gzipSync(new Uint8Array(Buffer.from(buf)), { level: 9, mtime: 0 });
   z[9] = 0xff;
   return b64(z);
 };

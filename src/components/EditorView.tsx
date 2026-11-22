@@ -77,6 +77,27 @@ const NARROW_QUERY = "(max-width: 640px), (max-height: 500px)";
 const SIDE_QUERY = "(min-width: 500px) and (max-height: 500px)";
 
 /** 狭い画面（スマホ）か。文字の編集を画面下の入力欄で行う等の切り替えに使う */
+/** 右のパネルの幅（px）。PC の横並びのときだけ使う。境界をなぞって変え、次に開いたときも同じ幅にする */
+export const PROPS_W = { def: 260, min: 220, max: 560, key: "washi-pdf.propsWidth" };
+function readPropsWidth(): number {
+  try {
+    const v = Number(localStorage.getItem(PROPS_W.key));
+    return Number.isFinite(v) && v >= PROPS_W.min && v <= PROPS_W.max ? v : PROPS_W.def;
+  } catch {
+    return PROPS_W.def;
+  }
+}
+function useMedia(query: string): boolean {
+  const [on, setOn] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const f = () => setOn(mq.matches);
+    mq.addEventListener("change", f);
+    return () => mq.removeEventListener("change", f);
+  }, [query]);
+  return on;
+}
+
 function useNarrow(): boolean {
   const [narrow, setNarrow] = useState(() => typeof window !== "undefined" && window.matchMedia(NARROW_QUERY).matches);
   useEffect(() => {
@@ -844,6 +865,100 @@ export function EditorView(p: Props) {
   useEffect(() => {
     if (!narrow && !overflow.length) setMoreTools(false);
   }, [narrow, overflow.length]);
+  // 右のパネルの幅：境界をなぞって変える（PC の横並びのときだけ）。文書側は、表示の幅が変われば倍率を合わせ直す
+  const sideBySide = useMedia("(min-width: 1001px)") && !narrow;
+  const [propsW, setPropsW] = useState(readPropsWidth);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const savePropsW = (w: number) => {
+    try {
+      if (w === PROPS_W.def) localStorage.removeItem(PROPS_W.key);
+      else localStorage.setItem(PROPS_W.key, String(w));
+    } catch {
+      /* 覚えられなくても、この起動のあいだは使える */
+    }
+  };
+  /** 文書側に最低限の幅（320px）を残す範囲に収める */
+  const clampPropsW = (w: number) => {
+    const total = editorRef.current?.clientWidth ?? window.innerWidth;
+    const room = total - 132 - 320;
+    return Math.round(Math.max(PROPS_W.min, Math.min(PROPS_W.max, room, w)));
+  };
+  const splitDrag = useRef<{ id: number; rtl: boolean; edge: number } | null>(null);
+  const onSplitDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const r = editorRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const rtl = getComputedStyle(editorRef.current!).direction === "rtl";
+    splitDrag.current = { id: e.pointerId, rtl, edge: rtl ? r.left : r.right };
+    splitFrame.current.w = 0;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    document.documentElement.classList.add("col-resizing");
+    e.preventDefault();
+  };
+  // なぞるあいだの幅の更新は、描画 1 回につき 1 度にまとめる（ページ数の多い文書でも重くならないように）
+  const splitFrame = useRef({ raf: 0, w: 0 });
+  const onSplitMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = splitDrag.current;
+    if (!d || d.id !== e.pointerId) return;
+    const f = splitFrame.current;
+    f.w = clampPropsW(d.rtl ? e.clientX - d.edge : d.edge - e.clientX);
+    if (f.raf) return;
+    f.raf = requestAnimationFrame(() => {
+      f.raf = 0;
+      setPropsW(f.w);
+    });
+  };
+  const onSplitUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = splitDrag.current;
+    if (!d || d.id !== e.pointerId) return;
+    splitDrag.current = null;
+    document.documentElement.classList.remove("col-resizing");
+    const f = splitFrame.current;
+    cancelAnimationFrame(f.raf);
+    f.raf = 0;
+    if (f.w) {
+      setPropsW(f.w);
+      savePropsW(f.w);
+    }
+  };
+  const onSplitKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const rtl = getComputedStyle(e.currentTarget).direction === "rtl";
+    const wider = rtl ? "ArrowRight" : "ArrowLeft";
+    const narrower = rtl ? "ArrowLeft" : "ArrowRight";
+    let w: number | null = null;
+    if (e.key === wider) w = clampPropsW(propsW + (e.shiftKey ? 64 : 16));
+    else if (e.key === narrower) w = clampPropsW(propsW - (e.shiftKey ? 64 : 16));
+    else if (e.key === "Home") w = clampPropsW(PROPS_W.min);
+    else if (e.key === "End") w = clampPropsW(PROPS_W.max);
+    if (w == null) return;
+    // 選んでいる図形などを矢印で動かす処理（ページ側）には渡さない
+    e.preventDefault();
+    e.stopPropagation();
+    setPropsW(w);
+    savePropsW(w);
+  };
+  const resetPropsW = () => {
+    setPropsW(PROPS_W.def);
+    savePropsW(PROPS_W.def);
+  };
+  // 窓を狭くしたとき、覚えている幅のままだと文書側が狭くなりすぎるので、表示の上だけ縮める（覚えている幅は変えない）
+  const [roomW, setRoomW] = useState<number | null>(null);
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el || !sideBySide) return;
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setRoomW(el.clientWidth));
+    });
+    ro.observe(el);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [sideBySide]);
+  const shownPropsW = roomW == null ? propsW : Math.max(PROPS_W.min, Math.min(propsW, roomW - 132 - 320));
+
   // つまみをなぞってパネルを開閉する（下に付くときは上下、横に付くときは左右）
   const gripDrag = useRef<{ x: number; y: number; swiped: boolean } | null>(null);
   const closePanel = (closed: boolean) => {
@@ -852,7 +967,7 @@ export function EditorView(p: Props) {
   };
 
   return (
-    <div className={`editor ${typing ? "typing" : ""}`}>
+    <div ref={editorRef} className={`editor ${typing ? "typing" : ""}`} style={sideBySide ? ({ "--props-w": `${shownPropsW}px` } as React.CSSProperties) : undefined}>
       <aside className="strip" ref={stripRef}>
         {pages.map((pg, i) => (
           <button key={pg.id} className={`strip-item ${pg.id === currentId ? "on" : ""}`} onClick={() => goToPage(pg.id)}>
@@ -1151,6 +1266,25 @@ export function EditorView(p: Props) {
         </div>
       </section>
 
+      {sideBySide && (
+        <div
+          className="props-split"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t("props.resize")}
+          title={t("props.resize")}
+          aria-valuemin={PROPS_W.min}
+          aria-valuemax={PROPS_W.max}
+          aria-valuenow={shownPropsW}
+          tabIndex={0}
+          onPointerDown={onSplitDown}
+          onPointerMove={onSplitMove}
+          onPointerUp={onSplitUp}
+          onPointerCancel={onSplitUp}
+          onDoubleClick={resetPropsW}
+          onKeyDown={onSplitKey}
+        />
+      )}
       <aside ref={propsRef} tabIndex={0} aria-label={t("props.label")} className={`props ${selected ? "" : "idle"} ${narrow && panelClosed ? "collapsed" : ""}`}>
         {typing && (
           // 入力中だけ出す短い帯：書式などを開く（入力を終えてパネルを全部出す）／完了（入力を終えてパネルをたたむ）

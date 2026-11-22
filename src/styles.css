@@ -929,7 +929,42 @@ fieldset.group legend {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr) 260px;
+  grid-template-columns: 132px minmax(0, 1fr) var(--props-w, 260px);
+  position: relative;
+}
+/* 文書と右のパネルの境界：なぞってパネルの幅を変える。パネルの内側の端に置き、文書のスクロールバーには重ねない */
+.props-split {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: calc(var(--props-w, 260px) - 7px);
+  width: 8px;
+  z-index: 6;
+  cursor: col-resize;
+  touch-action: none;
+}
+.props-split::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-end: 6px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+.props-split:hover::after,
+.props-split:focus-visible::after,
+html.col-resizing .props-split::after {
+  background: var(--accent);
+}
+.props-split:focus-visible {
+  outline: none;
+}
+html.col-resizing,
+html.col-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
 }
 .strip {
   overflow: auto;

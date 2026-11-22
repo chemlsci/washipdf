@@ -48,8 +48,8 @@ writeFileSync(
   join(out, "notes.md"),
   `## Washi PDF ${ver}
 
-**Official downloads are only the HTML files attached to this release.** Online version: https://washipdf.com
-**公式の配布物は、このリリースに添付した HTML ファイルだけです。** オンライン版：https://washipdf.com
+**Official downloads are only the HTML files attached to this release.** Online version: <https://washipdf.com>
+**公式の配布物は、このリリースに添付した HTML ファイルだけです。** オンライン版：<https://washipdf.com>
 
 ${table}
 
@@ -65,9 +65,9 @@ Every edition has the same features and a 20-language UI. They differ only in th
    PDF を読み込んで編集し、「保存」でダウンロード
 
 Files are processed only inside your browser; the app makes no network requests. A Content-Security-Policy (\`connect-src 'none'\`) tells the browser to block connections, and nothing is loaded from a CDN.
-Text recognition (OCR) is only in the web version (https://washipdf.com). On iPhone / iPad we recommend the web version.
+Text recognition (OCR) is only in the web version (<https://washipdf.com>). On iPhone / iPad we recommend the web version.
 ファイルはブラウザーの中だけで処理され、アプリは通信を行いません。CSP（\`connect-src 'none'\`）で外部への接続をブラウザに止めさせており、CDN からも何も読み込みません。
-文字認識（OCR）は Web 版（https://washipdf.com）だけの機能です。iPhone / iPad では Web 版をおすすめします。
+文字認識（OCR）は Web 版（<https://washipdf.com>）だけの機能です。iPhone / iPad では Web 版をおすすめします。
 
 ### Verify / 改ざんの確認
 SHA-256 (also in \`SHA256SUMS.txt\`) / SHA-256 の照合：
